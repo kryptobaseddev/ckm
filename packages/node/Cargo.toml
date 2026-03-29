@@ -1,0 +1,45 @@
+[package]
+name = "ckm-node"
+version = "0.1.0"
+edition = "2024"
+description = "CKM (Codebase Knowledge Manifest) — napi-rs Node.js wrapper for ckm-core."
+license = "MIT"
+repository = "https://github.com/kryptobaseddev/ckm"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ckm = { path = "../rust-core" }
+napi = { version = "3", features = ["full"] }
+napi-derive = "3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[build-dependencies]
+napi-build = "2"
+
+[lints.rust]
+missing_docs = "warn"
+# napi-rs macros generate unsafe FFI code; forbid is incompatible
+unsafe_code = "warn"
+
+[lints.rustdoc]
+broken_intra_doc_links = "deny"
+invalid_html_tags = "deny"
+missing_crate_level_docs = "warn"
+bare_urls = "warn"
+redundant_explicit_links = "warn"
+unescaped_backticks = "warn"
+
+[lints.clippy]
+missing_safety_doc = "deny"
+missing_errors_doc = "warn"
+missing_panics_doc = "warn"
+empty_docs = "warn"
+doc_markdown = "warn"
+needless_doctest_main = "warn"
+suspicious_doc_comments = "warn"
+too_long_first_doc_paragraph = "warn"
+unwrap_used = "deny"
+expect_used = "deny"

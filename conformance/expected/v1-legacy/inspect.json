@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "project": "legacy-tool",
+    "language": "typescript",
+    "generator": "unknown",
+    "generated": "2025-06-15T12:00:00.000Z",
+    "sourceUrl": null
+  },
+  "counts": {
+    "concepts": 3,
+    "operations": 2,
+    "constraints": 2,
+    "workflows": 1,
+    "configKeys": 3,
+    "topics": 2
+  },
+  "topicNames": ["calver", "semver"]
+}

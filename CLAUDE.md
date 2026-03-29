@@ -6,63 +6,68 @@
 - **Repo**: `kryptobaseddev/ckm` (target GitHub remote — not yet created)
 - **Local path**: `/mnt/projects/codebase-knowledge-manifest`
 - **Purpose**: Multi-language SDK for consuming `ckm.json` manifests — auto-derived topics, progressive disclosure, CLI framework adapters
-- **Status**: Pre-implementation (architecture spec complete, PLAN.md defines epics/tasks)
+- **Status**: Rust-core SSoT architecture (pivot from spec-based to single implementation)
+
+## Architecture: Rust Core SSoT
+
+**One implementation. Thin wrappers. Zero drift.**
+
+```
+packages/rust-core/   ← THE SSoT. Pure Rust. All algorithms.
+packages/node/        ← napi-rs 3.8+ wrapper → npm: ckm
+packages/python/      ← PyO3 + Maturin wrapper → PyPI: ckm
+packages/go/          ← CGo/WASM wrapper → Go modules
+packages/cli/         ← Pure Rust binary → crates.io: ckm-cli
+conformance/          ← Test fixtures (verify rust-core)
+```
+
+All CKM logic (types, engine, migration, validation, formatting) lives in `rust-core`. Every other language package is a thin FFI wrapper (~50-100 LOC) that calls into the Rust code. When behavior changes, it changes once in Rust.
 
 ## Key Documents
 
 | Document | Purpose |
 |----------|---------|
-| `VISION.md` | Product intent, design principles, relationships |
-| `PLAN.md` | Full epic breakdown with tasks, dependencies, acceptance criteria |
-| `docs/specs/CKM-SDK-ARCHITECTURE.md` | Complete architecture specification (1000+ lines) |
-| `docs/specs/INTERFACE.md` | SDK Interface Definition — SSoT types and methods (to be written) |
-| `docs/specs/SPEC.md` | Deterministic algorithm specification (to be written) |
-| `ckm.schema.json` | ckm.json v2 JSON Schema (to be written) |
+| `VISION.md` | Product intent, design principles, why Rust-core |
+| `PLAN.md` | Epic breakdown with tasks, dependencies, critical path |
+| `docs/specs/CKM-SDK-ARCHITECTURE.md` | Complete architecture specification |
+| `INTERFACE.md` | API surface documentation (derived from rust-core) |
+| `SPEC.md` | Algorithm documentation (derived from rust-core) |
+| `ckm.schema.json` | ckm.json v2 JSON Schema (the input contract) |
 
-## Architecture Overview
-
-The backbone is spec-based (NOT a compiled binary):
-
-1. **`ckm.schema.json`** — INPUT: what goes into the engine
-2. **`INTERFACE.md`** — API SURFACE: types + methods every SDK exposes
-3. **`SPEC.md`** — BEHAVIOR: deterministic topic derivation algorithm
-4. **`conformance/`** — PROOF: test fixtures every implementation must pass
-
-Each language implements natively. Conformance tests prove correctness.
-
-## Monorepo Structure
+## SSoT Flow
 
 ```
-packages/
-  core/     — TypeScript core library (npm: ckm)
-  cli/      — Standalone CLI binary (npm: ckm-cli)
-  python/   — Python SDK (PyPI: ckm)
-  rust/     — Rust SDK (crates.io: ckm)
-  go/       — Go SDK (go module)
-conformance/ — Cross-language test fixtures
-docs/specs/  — Architecture, interface, and algorithm specs
+ckm.schema.json    → Defines what goes IN (the input format)
+rust-core          → THE implementation (types, engine, algorithms)
+INTERFACE.md       → Documents what comes OUT (derived from code)
+SPEC.md            → Documents HOW (derived from code)
+conformance/       → PROVES correctness (tests the Rust core)
 ```
 
-## Rollout Phases
+**When this document and the code disagree, the code wins.**
 
-1. **Phase 1**: TypeScript Foundation (core + Commander adapter + CLI + conformance)
-2. **Phase 2**: TypeScript Adapter Expansion (Citty, oclif, Clipanion)
-3. **Phase 3**: Python SDK (Click, Typer adapters)
-4. **Phase 4**: Rust SDK (Clap adapter)
-5. **Phase 5**: Go SDK (Cobra, urfave/cli adapters)
-6. **Phase 6**: forge-ts v2 integration
+## Build Tooling
+
+| Tool | Purpose |
+|------|---------|
+| `cargo` | Rust builds and tests |
+| `napi-rs` 3.8+ | Node.js native bindings from Rust |
+| `PyO3` + `maturin` | Python native wheels from Rust |
+| `biome` | TypeScript/JS formatting and linting |
+| `vitest` | TypeScript adapter tests |
 
 ## Upstream Dependencies
 
-- **VersionGuard** (`/mnt/projects/versionguard`): CKM's origin — `src/ckm/` module being extracted. After Phase 1, VG depends on `ckm` as a library.
-- **forge-ts** (`/mnt/projects/forge-ts`): Generates `ckm.json` from TypeScript source. Phase 6 adds v2 schema support.
+- **VersionGuard** (`/mnt/projects/versionguard`): CKM's origin — `src/ckm/` module being replaced by `ckm` dependency
+- **forge-ts** (`/mnt/projects/forge-ts`): Generates `ckm.json` from TypeScript source
 
 ## Conventions
 
-- ESM-only (TypeScript package)
-- Vitest for TypeScript tests
-- Biome for formatting/linting
-- Zero runtime dependencies in core (adapters use peerDependencies)
-- All types defined in INTERFACE.md first, then implemented per language
+- Rust-core has zero dependencies beyond serde/serde_json
+- FFI wrappers are as thin as possible — NO logic, only marshaling
+- Adapters (Commander.js, Click, Clap, Cobra) are written in the target language, calling engine via FFI
+- Conformance tests run against rust-core; wrappers inherit correctness
+- ESM-only for Node.js packages
+- All packages are unscoped root names (no `@codluv` scope)
 
 @AGENTS.md

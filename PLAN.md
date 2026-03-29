@@ -1,425 +1,232 @@
 # CKM SDK — Master Plan
 
-**Status**: Ready for implementation
+**Status**: Active (Rust-core SSoT pivot)
 **Date**: 2026-03-29
 
 ---
 
 ## Objective
 
-Extract CKM from VersionGuard into a standalone, multi-language SDK. Ship `ckm` on npm first, then PyPI, crates.io, and Go modules. Define the interface once, implement per language, prove with conformance tests.
+Extract CKM from VersionGuard into a standalone, multi-language SDK powered by a **single Rust core**. Ship `ckm` on npm (via napi-rs), PyPI (via PyO3), crates.io (native), and Go modules (via CGo/WASM). One implementation. Thin wrappers. Zero drift.
+
+## Architecture Decision
+
+**Previous approach (rejected):** Independent per-language implementations guided by INTERFACE.md and SPEC.md prose specs.
+
+**Current approach:** Single Rust core library (`packages/rust-core/`) containing ALL algorithms — types, engine, migration, validation, formatting. Each language gets a thin FFI wrapper (~50-100 LOC) that exposes idiomatic APIs backed by the same Rust code.
+
+**Why:** Four independent implementations of ~500 LOC algorithms *will* drift on edge cases, even with conformance tests. One implementation + mechanical wrappers eliminates drift by construction.
 
 ## Upstream Context
 
 - **Origin**: CKM currently lives at `/mnt/projects/versionguard/src/ckm/` (~500 LOC, 4 files)
-- **Reference implementation**: Copied to `docs/specs/reference-*.ts` for porting
+- **Reference implementation**: Copied to `docs/specs/reference-*.ts` for porting reference
 - **Reference v1 manifest**: Copied to `docs/specs/reference-ckm-v1.json` (1518 lines, real-world)
-- **Architecture spec**: `docs/specs/CKM-SDK-ARCHITECTURE.md` (complete, 1000+ lines)
-- **After Phase 1**: VersionGuard replaces `src/ckm/` with `import { createCkmEngine } from 'ckm'`
+- **Architecture spec**: `docs/specs/CKM-SDK-ARCHITECTURE.md` (complete)
 
 ---
 
 ## Epic 0: Project Foundation
 
-Bootstrap the monorepo, CI, and backbone documents that all language SDKs depend on.
+Bootstrap the monorepo and backbone documents.
 
-### E0-T01: Initialize monorepo tooling
-- Create root `package.json` with workspaces (`packages/*`)
-- Add Biome config for formatting/linting
-- Add root `tsconfig.json` base config
-- Add `.gitignore`, `.editorconfig`, `LICENSE` (MIT)
-- **AC**: `npm install` works at root, Biome format/lint passes on empty project
+### E0-T01: Monorepo tooling
+- Root `package.json` (workspaces), Biome, tsconfig, .gitignore, .editorconfig, LICENSE
+- **Status**: DONE
 
-### E0-T02: Write ckm.json v2 JSON Schema (`ckm.schema.json`)
-- Define the v2 schema as a JSON Schema draft 2020-12 document
-- Include all types: `CkmMeta`, `CkmConcept` (with `slug`, `tags`), `CkmTypeRef` (with `canonical`/`original`/`enum`), `CkmOperation`, `CkmConstraint`, `CkmWorkflow`, `CkmConfigEntry`
-- Include `$schema` URL: `https://ckm.dev/schemas/v2.json`
-- Validate the reference-ckm-v1.json does NOT pass (it's v1)
-- **AC**: Schema file exists at root. Can be used with `ajv` or any JSON Schema validator.
-- **Depends on**: None
+### E0-T02: ckm.json v2 JSON Schema (`ckm.schema.json`)
+- JSON Schema draft 2020-12 defining the v2 manifest format
+- **Status**: DONE
 
-### E0-T03: Write INTERFACE.md (SDK Interface Definition)
-- Define all SSoT types in language-agnostic pseudocode (from architecture spec section 4a)
-- Define `CkmEngine` interface: `topics`, `getTopicIndex()`, `getTopicContent()`, `getTopicJson()`, `getManifest()`, `inspect()`
-- Define factory: `createCkmEngine(manifest) -> CkmEngine`
-- Define utilities: `validateManifest()`, `migrateV1toV2()`, `detectVersion()`
-- Define `CkmCliAdapter` interface and `CkmAdapterOptions`
-- Define `CkmFormatter` interface
-- Include language mapping table (TS/Python/Rust/Go equivalents)
-- **AC**: Document is complete, covers every public type and method. A developer in any language can implement from this alone.
-- **Depends on**: E0-T02 (schema defines input types)
+### E0-T03: INTERFACE.md
+- API surface documentation derived from Rust core
+- **Status**: DONE (updated for Rust-core SSoT)
 
-### E0-T04: Write SPEC.md (Algorithm Specification)
-- Define topic derivation algorithm step by step:
-  1. Filter concepts by `tags` containing `"config"` (v2) or suffix heuristic (v1 compat)
-  2. Use `slug` field directly (v2) or derive from name (v1 compat)
-  3. Match operations to topics via `tags` intersection (v2) or keyword matching (v1 compat)
-  4. Group config entries by key prefix matching slug
-  5. Link constraints by `enforcedBy` matching operation names
-- Define v1 -> v2 migration algorithm
-- Define version detection algorithm
-- Define output formatting rules (terminal text format, JSON structure)
-- Define progressive disclosure token budgets
-- **AC**: Unambiguous, deterministic — two independent implementations from this spec produce identical output for identical input.
-- **Depends on**: E0-T02, E0-T03
+### E0-T04: SPEC.md
+- Algorithm documentation derived from Rust core
+- **Status**: DONE (updated for Rust-core SSoT)
 
-### E0-T05: Create conformance test fixtures
-- Create `conformance/fixtures/minimal.ckm.json` — single concept, single operation (v2)
-- Create `conformance/fixtures/multi-topic.ckm.json` — 3+ config concepts, operations, constraints
-- Create `conformance/fixtures/polyglot.ckm.json` — language-agnostic, exercises all type refs
-- Create `conformance/fixtures/v1-legacy.ckm.json` — real v1 manifest (subset of VG's)
-- Create `conformance/fixtures/edge-cases.ckm.json` — empty arrays, null defaults, unknown topics
-- For each fixture, create expected output files:
-  - `expected/{name}/topics.json`
-  - `expected/{name}/topicIndex.json`
-  - `expected/{name}/topicContent-{slug}.txt`
-  - `expected/{name}/topicJson-{slug}.json`
-  - `expected/{name}/inspect.json`
-  - `expected/{name}/validate.json`
-- For v1-legacy: add `detectVersion.json` and `migrateResult.json`
-- **AC**: Fixtures are valid JSON. Expected outputs are deterministic. At least 5 fixtures with full expected output suites.
-- **Depends on**: E0-T02, E0-T03, E0-T04
+### E0-T05: Conformance test fixtures
+- 5 fixtures: minimal, multi-topic, polyglot, v1-legacy, edge-cases
+- Expected outputs for each
+- **Status**: DONE
 
-### E0-T06: Set up CI pipeline
-- GitHub Actions workflow: lint, format check, typecheck
-- Conformance workflow placeholder (activated per-language as SDKs land)
-- Path-filtered triggers: `ckm.schema.json`, `SPEC.md`, `INTERFACE.md`, `conformance/` trigger all language tests
-- Per-language path filters: `packages/core/**` triggers TS tests only, etc.
-- **AC**: CI runs on push/PR. Lint and format pass on initial commit.
+### E0-T06: CI pipeline
+- GitHub Actions for lint, format, build, test
+- **Status**: DONE
+
+---
+
+## Epic 1: Rust Core Library (`packages/rust-core/`)
+
+**THE SSoT.** All CKM algorithms in pure Rust. Zero FFI concerns.
+
+### E1-T01: Scaffold rust-core crate
+- `Cargo.toml`: name `ckm-core`, serde + serde_json
 - **Depends on**: E0-T01
+- **AC**: `cargo build` and `cargo test` pass
 
----
+### E1-T02: Types (`src/types.rs`)
+- All INTERFACE.md types as `#[derive(Serialize, Deserialize)]` structs
+- **AC**: Can roundtrip-deserialize all conformance fixtures
 
-## Epic 1: TypeScript Core Library (`ckm` on npm)
+### E1-T03: Engine (`src/engine.rs`)
+- `CkmEngine::new(data)`, topic derivation per SPEC.md
+- All query methods: topics, topic_index, topic_content, topic_json, manifest, inspect
+- **AC**: All conformance fixtures pass
 
-The reference implementation. First SDK to ship.
+### E1-T04: Migration (`src/migrate.rs`)
+- `detect_version()`, `migrate_v1_to_v2()`
+- **AC**: v1-legacy fixture migrates correctly
 
-### E1-T01: Scaffold `packages/core` with package.json, tsconfig, Vite build
-- `package.json`: name `ckm`, ESM-only, exports `.` and `./adapters/*`
-- `tsconfig.json` extends root
-- Vite or tsup build config (library mode, declaration files)
-- Vitest config
-- **AC**: `npm run build` produces `dist/` with `.js` + `.d.ts`. `npm run test` runs (empty suite passes).
-- **Depends on**: E0-T01
+### E1-T05: Validation (`src/validate.rs`)
+- `validate_manifest()` with JSON pointer error paths
+- **AC**: Valid v2 passes, v1 fails, invalid data returns correct errors
 
-### E1-T02: Implement SSoT types (`src/types.ts`)
-- Translate every type from INTERFACE.md into TypeScript interfaces
-- `CkmManifest`, `CkmMeta`, `CkmConcept`, `CkmProperty`, `CkmTypeRef`, `CanonicalType`
-- `CkmOperation`, `CkmInput`, `CkmOutput`, `CkmConstraint`, `CkmWorkflow`, `CkmWorkflowStep`
-- `CkmConfigEntry`, `CkmTopic`, `CkmTopicIndexEntry`, `CkmTopicIndex`
-- `CkmInspectResult`, `CkmValidationResult`, `CkmValidationError`
-- **AC**: All types from INTERFACE.md present. TSDoc on every public type. Compiles clean.
-- **Depends on**: E0-T03, E1-T01
+### E1-T06: Formatter (`src/format.rs`)
+- Plain text terminal output, token budget compliance
+- **AC**: Output matches expected text fixtures
 
-### E1-T03: Implement v1 types and migration (`src/migrate.ts`)
-- Define v1 manifest types (from reference-types.ts)
-- Implement `detectVersion(data) -> 1 | 2`
-- Implement `migrateV1toV2(manifest) -> CkmManifest` following SPEC.md algorithm:
-  - Wrap project/generated into meta block
-  - Convert raw type strings to `CkmTypeRef` objects
-  - Derive slugs from concept names (strip Config/Result/Options)
-  - Infer tags from naming conventions
-  - Rewrite config schema keys
-- **AC**: Conformance tests for v1-legacy fixture pass. Round-trip: migrate then use engine produces correct topics.
-- **Depends on**: E0-T04, E0-T05, E1-T02
+### E1-T07: Full conformance suite
+- Load all `conformance/fixtures/`, compare to `conformance/expected/`
+- **AC**: All fixtures pass, exact-match on expected outputs
 
-### E1-T04: Implement schema validation (`src/validate.ts`)
-- Implement `validateManifest(data) -> CkmValidationResult`
-- Use `ckm.schema.json` for validation (bundle at build time or inline)
-- Return structured errors with JSON pointer paths
-- **AC**: Valid v2 manifests pass. Invalid manifests return correct error paths. v1 manifests fail validation (not v2).
-- **Depends on**: E0-T02, E1-T02
-
-### E1-T05: Implement CKM engine (`src/engine.ts`)
-- Port `createCkmEngine()` from reference implementation
-- Adapt to v2 types: use `slug` and `tags` instead of suffix heuristics
-- Keep v1 compatibility: auto-migrate on construction if v1 detected
-- Implement `CkmEngine` interface: `topics`, `getTopicIndex()`, `getTopicContent()`, `getTopicJson()`, `getManifest()`, `inspect()`
-- **AC**: All conformance test fixtures pass. Engine handles both v1 and v2 input.
-- **Depends on**: E1-T02, E1-T03, E0-T04
-
-### E1-T06: Implement terminal formatter (`src/format.ts`)
-- Plain text formatter (no chalk/color dependency)
-- `formatTopicIndex()` — topic list with aligned columns
-- `formatTopicContent()` — concepts, operations, config fields, constraints
-- Token budget compliance: index < 300 tokens, topic < 800 tokens
-- **AC**: Output matches conformance `topicContent-*.txt` fixtures exactly.
-- **Depends on**: E1-T02
-
-### E1-T07: Implement adapter types and registry (`src/adapters/`)
-- `src/adapters/types.ts`: `CkmCliAdapter<T>`, `CkmAdapterOptions`, `CkmFormatter`
-- `src/adapters/registry.ts`: `ADAPTER_TABLE` with lazy dynamic imports
-- **AC**: Adapter interface matches INTERFACE.md. Registry supports lazy loading.
-- **Depends on**: E1-T02
-
-### E1-T08: Implement Commander.js adapter
-- `src/adapters/commander.ts`
-- Registers `ckm [topic]` command with `--json` and `--llm` flags
-- Uses engine methods for all output
-- Commander is a peerDependency (optional)
-- **AC**: Integration test: create a Commander program, register adapter, parse `ckm calver --json`, verify output matches conformance.
-- **Depends on**: E1-T05, E1-T06, E1-T07
-
-### E1-T09: Write barrel export (`src/index.ts`)
-- Export all public types
-- Export `createCkmEngine`, `validateManifest`, `migrateV1toV2`, `detectVersion`
-- Export adapter types from `./adapters`
-- Subpath exports: `ckm` (core), `ckm/adapters/commander`, etc.
-- **AC**: `import { createCkmEngine } from 'ckm'` works. `import { CommanderAdapter } from 'ckm/adapters/commander'` works.
-- **Depends on**: E1-T05, E1-T07, E1-T08
-
-### E1-T10: Run full conformance suite
-- Wire up Vitest to load `conformance/fixtures/*.json`, parse, run through engine, compare to `conformance/expected/`
-- Test every method: `topics`, `getTopicIndex`, `getTopicContent`, `getTopicJson`, `inspect`
-- Test migration: v1-legacy fixture auto-migrates and produces correct topics
-- Test validation: valid/invalid manifests
-- **AC**: All conformance fixtures pass. Zero manual fixture skips.
-- **Depends on**: E0-T05, E1-T05, E1-T04
-
-### E1-T11: Publish `ckm` to npm
-- Verify package.json metadata (description, keywords, repository, license, exports)
-- Ensure `dist/` is clean, types are correct
-- `npm publish` (or changesets if adopted)
-- **AC**: `npm install ckm` works globally. `import { createCkmEngine } from 'ckm'` resolves.
-- **Depends on**: E1-T09, E1-T10
-
----
-
-## Epic 2: Standalone CLI (`ckm-cli` on npm)
-
-### E2-T01: Scaffold `packages/cli`
-- `package.json`: name `ckm-cli`, bin: `{ "ckm": "dist/main.js" }`
-- Depends on `ckm` (workspace dependency)
-- Uses Commander.js adapter internally
-- **AC**: `npm run build` produces executable. `./dist/main.js --help` runs.
-- **Depends on**: E1-T09
-
-### E2-T02: Implement `ckm [topic]` command
-- File resolution: `--file` flag, then `./ckm.json`, `./docs/ckm.json`, `./.ckm/ckm.json`
-- Progressive disclosure: index, topic, `--json`, `--llm`
-- **AC**: `ckm --file docs/ckm.json calver` displays topic. `--json` returns structured output.
-- **Depends on**: E2-T01
-
-### E2-T03: Implement `ckm validate <file>` command
-- Loads file, runs `validateManifest()`, prints results
-- Exit code 0 for valid, 1 for invalid
-- **AC**: Valid v2 file passes. Invalid file prints errors with JSON pointer paths. v1 file reports schema version mismatch.
-- **Depends on**: E2-T01
-
-### E2-T04: Implement `ckm migrate <file>` command
-- Loads v1 file, runs `migrateV1toV2()`, writes v2 output
-- `--dry-run` flag shows diff without writing
-- `--output` flag for custom output path
-- **AC**: Migrating `reference-ckm-v1.json` produces valid v2 output. `--dry-run` does not modify filesystem.
-- **Depends on**: E2-T01
-
-### E2-T05: Implement `ckm inspect <file>` command
-- Loads file, runs `engine.inspect()`, formats output
-- Shows: project, language, generator, concept/operation/topic counts
-- **AC**: Output matches `CkmInspectResult` shape. Works on both v1 and v2 files.
-- **Depends on**: E2-T01
-
-### E2-T06: Publish `ckm-cli` to npm
-- **AC**: `npx ckm-cli` and `npx ckm-cli validate docs/ckm.json` work globally.
-- **Depends on**: E2-T02, E2-T03, E2-T04, E2-T05
-
----
-
-## Epic 3: TypeScript Adapter Expansion
-
-### E3-T01: Implement Citty adapter (`src/adapters/citty.ts`)
-- Registers CKM as a Citty subcommand
-- Citty is peerDependency (optional)
-- **AC**: Integration test with Citty. Conformance output matches.
-- **Depends on**: E1-T07
-
-### E3-T02: Implement oclif adapter (`src/adapters/oclif.ts`)
-- Registers CKM as an oclif command class
-- oclif is peerDependency (optional)
-- **AC**: Integration test with oclif plugin pattern.
-- **Depends on**: E1-T07
-
-### E3-T03: Implement Clipanion adapter (`src/adapters/clipanion.ts`)
-- Registers CKM as a Clipanion command
-- Clipanion is peerDependency (optional)
-- **AC**: Integration test with Clipanion.
-- **Depends on**: E1-T07
-
----
-
-## Epic 4: Python SDK (`ckm` on PyPI)
-
-### E4-T01: Scaffold `packages/python` with pyproject.toml
-- Package name: `ckm`
-- Python 3.10+ minimum
-- Optional extras: `ckm[click]`, `ckm[typer]`
-- pytest for tests
-- **AC**: `pip install -e .` works. `pytest` runs (empty suite passes).
-
-### E4-T02: Implement SSoT types (`ckm/types.py`)
-- Translate INTERFACE.md types to Python dataclasses (or Pydantic if preferred)
-- All types present, docstrings match interface docs
-- **AC**: Types importable. `from ckm.types import CkmManifest` works.
-- **Depends on**: E0-T03
-
-### E4-T03: Implement engine (`ckm/engine.py`)
-- Port SPEC.md algorithm to Python
-- `create_engine(manifest) -> CkmEngine`
-- All engine methods: `topics`, `get_topic_index()`, `get_topic_content()`, `get_topic_json()`, `get_manifest()`, `inspect()`
-- Auto-migrate v1 manifests
-- **AC**: Conformance test fixtures pass.
-- **Depends on**: E0-T04, E4-T02
-
-### E4-T04: Implement validation and migration
-- `validate_manifest(data) -> CkmValidationResult`
-- `migrate_v1_to_v2(manifest) -> CkmManifest`
-- `detect_version(data) -> int`
-- **AC**: Conformance fixtures for validation and migration pass.
-- **Depends on**: E4-T02
-
-### E4-T05: Implement Click adapter
-- `ckm/adapters/click_adapter.py`
-- Registers CKM as a Click group command
-- **AC**: Integration test with Click. Output matches conformance.
-- **Depends on**: E4-T03
-
-### E4-T06: Implement Typer adapter (with Rich output)
-- `ckm/adapters/typer_adapter.py`
-- Rich-formatted terminal output (optional — falls back to plain text)
-- **AC**: Integration test with Typer. Rich formatting renders correctly.
-- **Depends on**: E4-T03
-
-### E4-T07: Run conformance suite and publish
-- Wire pytest to load conformance fixtures
-- All fixtures pass
-- Publish to PyPI
-- **AC**: `pip install ckm` works. `from ckm import create_engine` resolves.
-- **Depends on**: E4-T03, E4-T04, E4-T05, E4-T06
-
----
-
-## Epic 5: Rust SDK (`ckm` on crates.io)
-
-### E5-T01: Scaffold `packages/rust` with Cargo.toml
+### E1-T08: Publish to crates.io
 - Crate name: `ckm`
-- serde + serde_json for JSON handling
-- Optional features: `clap` for adapter
-- **AC**: `cargo build` succeeds. `cargo test` runs.
-
-### E5-T02: Implement types (`src/types.rs`)
-- `#[derive(Deserialize, Serialize)]` structs from INTERFACE.md
-- **AC**: Can deserialize v2 `ckm.json` into `CkmManifest` struct.
-- **Depends on**: E0-T03
-
-### E5-T03: Implement engine (`src/engine.rs`)
-- Port SPEC.md algorithm
-- `CkmEngine::new(manifest)`, all interface methods
-- **AC**: Conformance fixtures pass.
-- **Depends on**: E0-T04, E5-T02
-
-### E5-T04: Implement Clap adapter
-- Feature-gated: `ckm = { features = ["clap"] }`
-- **AC**: Integration test with Clap derive.
-- **Depends on**: E5-T03
-
-### E5-T05: Run conformance suite and publish
-- **AC**: `cargo add ckm` works. All fixtures pass.
-- **Depends on**: E5-T03, E5-T04
+- **AC**: `cargo add ckm` works
 
 ---
 
-## Epic 6: Go SDK
+## Epic 2: Node.js Wrapper (`packages/node/`)
 
-### E6-T01: Scaffold `packages/go` with go.mod
-- Module: `github.com/kryptobaseddev/ckm/go`
-- **AC**: `go build ./...` succeeds. `go test ./...` runs.
+napi-rs 3.8+ wrapper around rust-core.
 
-### E6-T02: Implement types (`types.go`)
-- Go structs with `json` struct tags from INTERFACE.md
-- **AC**: Can unmarshal v2 `ckm.json` into `Manifest` struct.
-- **Depends on**: E0-T03
+### E2-T01: Scaffold napi-rs project
+- `Cargo.toml` with napi-rs deps, `package.json` for npm
+- **Depends on**: E1-T07
+- **AC**: `napi build` produces `.node` file
 
-### E6-T03: Implement engine (`engine.go`)
-- Port SPEC.md algorithm
-- `NewEngine(manifest)`, all interface methods
-- **AC**: Conformance fixtures pass.
-- **Depends on**: E0-T04, E6-T02
+### E2-T02: Wrap engine functions
+- `#[napi]` annotations on: `createCkmEngine`, `validateManifest`, `migrateV1toV2`, `detectVersion`
+- Auto-generated `.d.ts` TypeScript types
+- **AC**: `import { createCkmEngine } from 'ckm'` works in Node.js
 
-### E6-T04: Implement Cobra adapter
-- **AC**: Integration test with Cobra.
-- **Depends on**: E6-T03
+### E2-T03: WASM fallback build
+- `wasm32-wasip1-threads` target for unsupported platforms
+- **AC**: WASM fallback loads when native binary unavailable
 
-### E6-T05: Implement urfave/cli adapter
-- **AC**: Integration test.
-- **Depends on**: E6-T03
+### E2-T04: Cross-platform builds
+- GitHub Actions matrix for linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+- **AC**: All platform binaries build in CI
 
-### E6-T06: Run conformance suite and publish
-- **AC**: `go get github.com/kryptobaseddev/ckm/go` works.
-- **Depends on**: E6-T03, E6-T04, E6-T05
+### E2-T05: Commander.js adapter
+- Adapter written in TypeScript, calls engine via napi-rs binding
+- **AC**: Integration test passes
 
----
+### E2-T06: Additional TS adapters (Citty, oclif, Clipanion)
+- Each adapter ~50 LOC calling engine via binding
+- **AC**: Integration tests pass
 
-## Epic 7: forge-ts v2 Integration
-
-### E7-T01: Add v2 schema generation to forge-ts
-- `forge-ts build` produces v2 `ckm.json` by default
-- Populates `meta` block, `concept.slug`, `concept.tags`, canonical types
-- `--ckm-version 1` flag for legacy output
-- **AC**: `forge-ts build` on VersionGuard produces valid v2 manifest that passes `ckm validate`.
-
-### E7-T02: Resolve enum values in forge-ts
-- Populate `type.enum` for string literal union types
-- Example: `CalVerFormat` → `["YYYY.MM.DD", "YYYY.MM", ...]`
-- **AC**: Enum values appear in v2 manifest.
-
-### E7-T03: Resolve operation input types
-- Replace `"unknown"` with actual canonical types where possible
-- **AC**: Operation inputs have meaningful types instead of `"unknown"`.
+### E2-T07: Publish `ckm` to npm
+- Platform-specific packages + root package
+- **AC**: `npm install ckm` works, types resolve
 
 ---
 
-## Epic 8: VersionGuard Migration
+## Epic 3: Python Wrapper (`packages/python/`)
 
-### E8-T01: Replace `src/ckm/` with `ckm` dependency
-- Add `ckm` to VersionGuard's dependencies
-- Update `src/cli.ts` imports: `import { createCkmEngine } from 'ckm'`
-- Update `src/index.ts` re-export
-- Remove `src/ckm/` directory
-- **AC**: `vg ckm` command works identically. All 276 tests pass. Build succeeds.
-- **Depends on**: E1-T11
+PyO3 + Maturin wrapper around rust-core.
 
-### E8-T02: Update VersionGuard to use Commander adapter
-- Replace manual Commander wiring with `import { CommanderAdapter } from 'ckm/adapters/commander'`
-- `adapter.register(program, engine)`
-- **AC**: `vg ckm`, `vg ckm calver`, `vg ckm --json` all work identically.
-- **Depends on**: E1-T08, E8-T01
+### E3-T01: Scaffold PyO3 project
+- `Cargo.toml` with PyO3 deps, `pyproject.toml` with Maturin
+- **Depends on**: E1-T07
+- **AC**: `maturin develop` builds and installs
+
+### E3-T02: Wrap engine functions
+- `#[pyclass]`/`#[pymethods]` on: `CkmEngine`, `validate_manifest`, `migrate_v1_to_v2`, `detect_version`
+- **AC**: `from ckm import create_engine` works
+
+### E3-T03: Click + Typer adapters
+- Pure Python adapters calling engine via PyO3 binding
+- **AC**: Integration tests pass
+
+### E3-T04: Publish `ckm` to PyPI
+- Maturin-built wheels for common platforms
+- **AC**: `pip install ckm` works
 
 ---
 
-## Dependency Graph (Critical Path)
+## Epic 4: Go Wrapper (`packages/go/`)
+
+CGo FFI or WASM (via wazero) wrapper around rust-core.
+
+### E4-T01: Build strategy decision
+- Evaluate CGo FFI vs WASM via wazero
+- **Depends on**: E1-T07
+- **AC**: Chosen approach builds and passes basic tests
+
+### E4-T02: Wrap engine functions
+- Go-idiomatic API: `NewEngine`, `ValidateManifest`, `MigrateV1ToV2`, `DetectVersion`
+- **AC**: `engine.TopicIndex("tool")` returns correct output
+
+### E4-T03: Cobra + urfave/cli adapters
+- Go adapters calling engine via chosen FFI
+- **AC**: Integration tests pass
+
+### E4-T04: Publish Go module
+- **AC**: `go get github.com/kryptobaseddev/ckm/go` works
+
+---
+
+## Epic 5: Standalone CLI (`packages/cli/`)
+
+Pure Rust binary depending on rust-core directly.
+
+### E5-T01: Scaffold CLI binary
+- Clap-based CLI with subcommands
+- **Depends on**: E1-T07
+- **AC**: `cargo build` produces `ckm` binary
+
+### E5-T02: Commands
+- `ckm browse [topic] [--json]`, `ckm validate <file>`, `ckm migrate <file>`, `ckm inspect <file>`
+- **AC**: All commands work with conformance fixtures
+
+### E5-T03: Publish
+- crates.io as `ckm-cli`, npm as `ckm-cli` (optional)
+- **AC**: `cargo install ckm-cli` works
+
+---
+
+## Epic 6: forge-ts v2 Integration
+
+### E6-T01: v2 schema generation
+- forge-ts produces v2 `ckm.json` by default
+- **AC**: `forge-ts build` on VG produces valid v2 manifest
+
+### E6-T02: Enum resolution + operation input types
+- **AC**: Manifest has meaningful types, not "unknown"
+
+---
+
+## Epic 7: VersionGuard Migration
+
+### E7-T01: Replace `src/ckm/` with `ckm` dependency
+- **AC**: `vg ckm` works identically, all tests pass
+
+---
+
+## Dependency Graph
 
 ```
-E0-T01 (monorepo) ─┬─> E0-T06 (CI)
-                    └─> E1-T01 (scaffold core)
-
-E0-T02 (schema) ──┬─> E0-T03 (INTERFACE.md)
-                   └─> E1-T04 (validation)
-
-E0-T03 (interface) ─┬─> E0-T04 (SPEC.md)
-                     ├─> E1-T02 (TS types)
-                     ├─> E4-T02 (Python types)
-                     ├─> E5-T02 (Rust types)
-                     └─> E6-T02 (Go types)
-
-E0-T04 (spec) ──┬─> E0-T05 (fixtures)
-                 ├─> E1-T05 (TS engine)
-                 ├─> E4-T03 (Python engine)
-                 ├─> E5-T03 (Rust engine)
-                 └─> E6-T03 (Go engine)
-
-E1-T05 (engine) ──> E1-T08 (Commander) ──> E1-T09 (barrel) ──> E1-T10 (conformance) ──> E1-T11 (publish)
-
-E1-T11 (npm publish) ──> E8-T01 (VG migration)
+E0 (foundation) ──> E1 (rust-core)
+                      |
+          +-----------+-----------+-----------+
+          |           |           |           |
+          v           v           v           v
+        E2 (node)   E3 (python) E4 (go)    E5 (cli)
+          |           |
+          v           v
+        E6 (forge-ts) ──> E7 (VG migration)
 ```
 
-**Critical path to first npm publish**: E0-T01 → E0-T02 → E0-T03 → E0-T04 → E0-T05 → E1-T01 → E1-T02 → E1-T03 → E1-T05 → E1-T06 → E1-T08 → E1-T09 → E1-T10 → E1-T11
+**Critical path**: E0 → E1 → E2 → E7

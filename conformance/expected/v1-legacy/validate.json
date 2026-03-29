@@ -1,0 +1,45 @@
+{
+  "valid": false,
+  "errors": [
+    {
+      "path": "/$schema",
+      "message": "must be equal to constant"
+    },
+    {
+      "path": "",
+      "message": "must have required property 'meta'"
+    },
+    {
+      "path": "",
+      "message": "must have required property 'workflows'"
+    },
+    {
+      "path": "",
+      "message": "must NOT have additional properties"
+    },
+    {
+      "path": "/concepts/0",
+      "message": "must have required property 'slug'"
+    },
+    {
+      "path": "/concepts/0",
+      "message": "must have required property 'tags'"
+    },
+    {
+      "path": "/concepts/1",
+      "message": "must have required property 'slug'"
+    },
+    {
+      "path": "/concepts/1",
+      "message": "must have required property 'tags'"
+    },
+    {
+      "path": "/concepts/2",
+      "message": "must have required property 'slug'"
+    },
+    {
+      "path": "/concepts/2",
+      "message": "must have required property 'tags'"
+    }
+  ]
+}

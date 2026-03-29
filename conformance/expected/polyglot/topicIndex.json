@@ -1,0 +1,19 @@
+{
+  "topics": [
+    {
+      "name": "format",
+      "summary": "Configuration for output formatting with all type variants.",
+      "concepts": 1,
+      "operations": 2,
+      "configFields": 3,
+      "constraints": 1
+    }
+  ],
+  "ckm": {
+    "concepts": 1,
+    "operations": 2,
+    "constraints": 1,
+    "workflows": 0,
+    "configSchema": 3
+  }
+}

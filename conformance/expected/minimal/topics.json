@@ -1,0 +1,61 @@
+[
+  {
+    "name": "calver",
+    "summary": "Configures CalVer validation rules.",
+    "concepts": [
+      {
+        "id": "concept-calver-config",
+        "name": "CalVerConfig",
+        "slug": "calver",
+        "what": "Configures CalVer validation rules.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "format",
+            "type": { "canonical": "string", "original": "CalVerFormat" },
+            "description": "Calendar format used for version strings.",
+            "required": true,
+            "default": "YYYY.MM.DD"
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-validate",
+        "name": "validate",
+        "what": "Validates a calver version string against the configured format.",
+        "tags": ["calver"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string" },
+            "required": true,
+            "description": "The version string to validate."
+          }
+        ],
+        "outputs": {
+          "type": { "canonical": "boolean" },
+          "description": "True if the version is valid."
+        }
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "calver.format",
+        "type": { "canonical": "string", "original": "CalVerFormat" },
+        "description": "Calendar format used for version strings.",
+        "default": "YYYY.MM.DD",
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-no-future-dates",
+        "rule": "CalVer versions must not reference future dates.",
+        "enforcedBy": "validate",
+        "severity": "error"
+      }
+    ]
+  }
+]

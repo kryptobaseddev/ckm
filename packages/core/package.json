@@ -1,0 +1,59 @@
+{
+  "name": "ckm-ts-legacy",
+  "version": "0.1.0",
+  "description": "Codebase Knowledge Manifest — structured CLI help from ckm.json manifests",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./adapters/commander": {
+      "types": "./dist/adapters/commander.d.ts",
+      "import": "./dist/adapters/commander.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ckm",
+    "cli",
+    "help",
+    "manifest",
+    "documentation",
+    "llm",
+    "agent"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kryptobaseddev/ckm.git",
+    "directory": "packages/core"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "commander": ">=11.0.0"
+  },
+  "peerDependenciesMeta": {
+    "commander": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "commander": "^13.0.0",
+    "tsup": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

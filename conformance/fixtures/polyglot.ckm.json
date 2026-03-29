@@ -1,0 +1,153 @@
+{
+  "$schema": "https://ckm.dev/schemas/v2.json",
+  "version": "2.0.0",
+  "meta": {
+    "project": "polyglot-tool",
+    "language": "typescript",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "concepts": [
+    {
+      "id": "concept-format-config",
+      "name": "FormatConfig",
+      "slug": "format",
+      "what": "Configuration for output formatting with all type variants.",
+      "tags": ["config"],
+      "properties": [
+        {
+          "name": "template",
+          "type": { "canonical": "string" },
+          "description": "Output template string.",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "enabled",
+          "type": { "canonical": "boolean" },
+          "description": "Whether formatting is enabled.",
+          "required": true,
+          "default": "true"
+        },
+        {
+          "name": "precision",
+          "type": { "canonical": "number" },
+          "description": "Floating-point precision for numeric output.",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "maxLines",
+          "type": { "canonical": "integer" },
+          "description": "Maximum number of output lines.",
+          "required": false,
+          "default": "100"
+        },
+        {
+          "name": "includes",
+          "type": { "canonical": "array", "original": "string[]" },
+          "description": "List of glob patterns to include.",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "metadata",
+          "type": { "canonical": "object", "original": "Record<string, unknown>" },
+          "description": "Arbitrary metadata key-value pairs.",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "deprecated",
+          "type": { "canonical": "null" },
+          "description": "Deprecated field, always null.",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "extra",
+          "type": { "canonical": "any" },
+          "description": "Untyped extension point.",
+          "required": false,
+          "default": null
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-render",
+      "name": "render",
+      "what": "Renders output using the format configuration.",
+      "tags": ["format"],
+      "inputs": [
+        {
+          "name": "data",
+          "type": { "canonical": "object" },
+          "required": true,
+          "description": "The data object to render."
+        },
+        {
+          "name": "options",
+          "type": { "canonical": "object", "original": "RenderOptions" },
+          "required": false,
+          "description": "Optional rendering overrides."
+        }
+      ],
+      "outputs": {
+        "type": { "canonical": "string" },
+        "description": "The rendered output string."
+      }
+    },
+    {
+      "id": "op-count",
+      "name": "countItems",
+      "what": "Counts items in the format output.",
+      "tags": ["format"],
+      "inputs": [
+        {
+          "name": "items",
+          "type": { "canonical": "array", "original": "unknown[]" },
+          "required": true,
+          "description": "The array of items to count."
+        }
+      ],
+      "outputs": {
+        "type": { "canonical": "integer" },
+        "description": "The number of items."
+      }
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-max-lines",
+      "rule": "Output must not exceed maxLines setting.",
+      "enforcedBy": "render",
+      "severity": "warning"
+    }
+  ],
+  "workflows": [],
+  "configSchema": [
+    {
+      "key": "format.template",
+      "type": { "canonical": "string" },
+      "description": "Output template string.",
+      "default": null,
+      "required": true
+    },
+    {
+      "key": "format.enabled",
+      "type": { "canonical": "boolean" },
+      "description": "Whether formatting is enabled.",
+      "default": "true",
+      "required": true
+    },
+    {
+      "key": "format.style",
+      "type": { "canonical": "string", "enum": ["compact", "pretty", "minimal"] },
+      "description": "Output style preset.",
+      "default": "pretty",
+      "required": false
+    }
+  ]
+}

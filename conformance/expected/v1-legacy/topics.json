@@ -1,0 +1,134 @@
+[
+  {
+    "name": "calver",
+    "summary": "Configures CalVer validation rules.",
+    "concepts": [
+      {
+        "id": "concept-CalVerConfig",
+        "name": "CalVerConfig",
+        "slug": "calver",
+        "what": "Configures CalVer validation rules.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "format",
+            "type": { "canonical": "object", "original": "CalVerFormat" },
+            "description": "Calendar format used for version strings.",
+            "required": true,
+            "default": null
+          },
+          {
+            "name": "preventFutureDates",
+            "type": { "canonical": "boolean", "original": "boolean" },
+            "description": "Rejects versions that point to a future date.",
+            "required": true,
+            "default": null
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-validate",
+        "name": "validate",
+        "what": "Validates a calver version string.",
+        "tags": ["calver"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string", "original": "string" },
+            "required": true,
+            "description": "The version string to validate."
+          }
+        ],
+        "outputs": {
+          "type": { "canonical": "object", "original": "ValidationResult" },
+          "description": "ValidationResult"
+        }
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "calver.format",
+        "type": { "canonical": "object", "original": "CalVerFormat" },
+        "description": "Calendar format used for version strings.",
+        "default": "YYYY.MM.DD",
+        "required": true
+      },
+      {
+        "key": "calver.preventFutureDates",
+        "type": { "canonical": "boolean", "original": "boolean" },
+        "description": "Rejects versions that point to a future date.",
+        "default": "true",
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-no-future-dates",
+        "rule": "CalVer versions must not reference future dates.",
+        "enforcedBy": "validate",
+        "severity": "error"
+      }
+    ]
+  },
+  {
+    "name": "semver",
+    "summary": "Configures SemVer validation rules.",
+    "concepts": [
+      {
+        "id": "concept-SemVerConfig",
+        "name": "SemVerConfig",
+        "slug": "semver",
+        "what": "Configures SemVer validation rules.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "allowVPrefix",
+            "type": { "canonical": "boolean", "original": "boolean" },
+            "description": "Tolerates a leading v prefix.",
+            "required": true,
+            "default": null
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-parseSemVer",
+        "name": "parseSemVer",
+        "what": "Parses a semver version string into components.",
+        "tags": ["semver"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string", "original": "string" },
+            "required": true,
+            "description": "The version string to parse."
+          }
+        ],
+        "outputs": {
+          "type": { "canonical": "object", "original": "SemVerComponents" },
+          "description": "SemVerComponents"
+        }
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "semver.allowVPrefix",
+        "type": { "canonical": "boolean", "original": "boolean" },
+        "description": "Tolerates a leading v prefix.",
+        "default": "false",
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-valid-semver",
+        "rule": "Version must conform to SemVer 2.0.0 specification.",
+        "enforcedBy": "parseSemVer",
+        "severity": "error"
+      }
+    ]
+  }
+]

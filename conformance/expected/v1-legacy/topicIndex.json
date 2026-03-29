@@ -1,0 +1,27 @@
+{
+  "topics": [
+    {
+      "name": "calver",
+      "summary": "Configures CalVer validation rules.",
+      "concepts": 1,
+      "operations": 1,
+      "configFields": 2,
+      "constraints": 1
+    },
+    {
+      "name": "semver",
+      "summary": "Configures SemVer validation rules.",
+      "concepts": 1,
+      "operations": 1,
+      "configFields": 1,
+      "constraints": 1
+    }
+  ],
+  "ckm": {
+    "concepts": 3,
+    "operations": 2,
+    "constraints": 2,
+    "workflows": 1,
+    "configSchema": 3
+  }
+}

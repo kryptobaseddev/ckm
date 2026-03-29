@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "project": "multi-topic-tool",
+    "language": "typescript",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "counts": {
+    "concepts": 4,
+    "operations": 3,
+    "constraints": 3,
+    "workflows": 0,
+    "configKeys": 3,
+    "topics": 3
+  },
+  "topicNames": ["calver", "semver", "git"]
+}

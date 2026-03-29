@@ -1,0 +1,192 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same branch/PR
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Detect which paths changed to gate downstream jobs
+  # ──────────────────────────────────────────────
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      spec: ${{ steps.filter.outputs.spec }}
+      core: ${{ steps.filter.outputs.core }}
+      cli: ${{ steps.filter.outputs.cli }}
+      python: ${{ steps.filter.outputs.python }}
+      rust: ${{ steps.filter.outputs.rust }}
+      go: ${{ steps.filter.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            spec:
+              - 'ckm.schema.json'
+              - 'SPEC.md'
+              - 'INTERFACE.md'
+              - 'conformance/**'
+            core:
+              - 'packages/core/**'
+            cli:
+              - 'packages/cli/**'
+            python:
+              - 'packages/python/**'
+            rust:
+              - 'packages/rust/**'
+            go:
+              - 'packages/go/**'
+
+  # ──────────────────────────────────────────────
+  # Lint, format, and typecheck (runs on every push/PR)
+  # ──────────────────────────────────────────────
+  quality:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Biome format check
+        run: npm run format:check
+
+      - name: Biome lint
+        run: npm run lint
+
+      - name: TypeScript typecheck
+        # Placeholder — activate when packages have tsconfig.json configured
+        if: false
+        run: npx tsc --build --noEmit
+
+  # ──────────────────────────────────────────────
+  # TypeScript tests (core + cli)
+  # ──────────────────────────────────────────────
+  test-typescript:
+    name: Test TypeScript
+    needs: [changes, quality]
+    if: >-
+      needs.changes.outputs.spec == 'true' ||
+      needs.changes.outputs.core == 'true' ||
+      needs.changes.outputs.cli == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run core tests
+        if: needs.changes.outputs.spec == 'true' || needs.changes.outputs.core == 'true'
+        # Placeholder — activate when test runner is configured
+        run: echo "TODO — npx vitest run --project core"
+
+      - name: Run CLI tests
+        if: needs.changes.outputs.spec == 'true' || needs.changes.outputs.cli == 'true'
+        # Placeholder — activate when test runner is configured
+        run: echo "TODO — npx vitest run --project cli"
+
+  # ──────────────────────────────────────────────
+  # Python tests
+  # ──────────────────────────────────────────────
+  test-python:
+    name: Test Python
+    needs: [changes]
+    if: >-
+      needs.changes.outputs.spec == 'true' ||
+      needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Python tests
+        # Placeholder — activate when Python SDK is implemented
+        run: echo "TODO — cd packages/python && pytest"
+
+  # ──────────────────────────────────────────────
+  # Rust tests
+  # ──────────────────────────────────────────────
+  test-rust:
+    name: Test Rust
+    needs: [changes]
+    if: >-
+      needs.changes.outputs.spec == 'true' ||
+      needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Rust tests
+        # Placeholder — activate when Rust SDK is implemented
+        run: echo "TODO — cd packages/rust && cargo test"
+
+  # ──────────────────────────────────────────────
+  # Go tests
+  # ──────────────────────────────────────────────
+  test-go:
+    name: Test Go
+    needs: [changes]
+    if: >-
+      needs.changes.outputs.spec == 'true' ||
+      needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Run Go tests
+        # Placeholder — activate when Go SDK is implemented
+        run: echo "TODO — cd packages/go && go test ./..."
+
+  # ──────────────────────────────────────────────
+  # Conformance suite (cross-language)
+  # ──────────────────────────────────────────────
+  conformance:
+    name: Conformance
+    needs: [changes, test-typescript]
+    # Only run when spec files change and TS tests pass
+    if: needs.changes.outputs.spec == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run conformance tests
+        # Placeholder — activate when conformance runner is implemented
+        run: echo "TODO — run conformance suite against all available SDKs"

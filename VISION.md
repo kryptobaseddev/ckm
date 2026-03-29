@@ -1,6 +1,6 @@
 # CKM — Codebase Knowledge Manifest
 
-**Machine-readable operational knowledge for CLI tools. Any language. Any framework. One contract.**
+**Machine-readable operational knowledge for CLI tools. Any language. Any framework. One contract. One implementation.**
 
 ---
 
@@ -8,7 +8,7 @@
 
 CKM bridges the gap between API documentation and actionable help. While `llms.txt` tells you what functions exist, CKM tells you what the tool **does**, what **concepts** it has, what **config** controls what **behavior**, and what **constraints** are enforced.
 
-A `ckm.json` file is the universal contract. Any generator produces it. Any SDK consumes it. Any adapter wires it into any CLI framework.
+A `ckm.json` file is the universal contract. Any generator produces it. A single Rust core consumes it. Thin FFI wrappers expose it to every language. Any adapter wires it into any CLI framework.
 
 ```
                     ANY GENERATOR
@@ -20,21 +20,18 @@ A `ckm.json` file is the universal contract. Any generator produces it. Any SDK 
                     | ckm.json v2 |  <-- universal contract
                     +-------------+
                           |
+                    +-------------+
+                    | rust-core   |  <-- THE implementation (SSoT)
+                    +-------------+
+                          |
               +-----------+-----------+
               |           |           |
               v           v           v
-         ckm (npm)   ckm (PyPI)  ckm (crates.io)
-         core lib    core lib    core lib
-              |           |           |
-     +--------+--+   +---+---+   +---+---+
-     |  |  |  |  |   |       |   |       |
-     v  v  v  v  v   v       v   v       v
-    Cmdr Citty ...  Click  Typer Clap   ...
-    adapter         adapter      adapter
+         napi-rs      PyO3        CGo/WASM
+         (Node)     (Python)       (Go)
               |           |           |
               v           v           v
          YOUR CLI    YOUR CLI    YOUR CLI
-         (embeds)    (embeds)    (embeds)
 ```
 
 ## Why CKM Exists
@@ -63,21 +60,33 @@ The SDK then auto-derives **topics** from this manifest — zero manual mapping.
 
 `ckm.json` is language-agnostic. A TypeScript project, a Rust crate, a Python package, and a Go module all produce the same schema. The SDK reads it identically everywhere.
 
-### 2. Batteries Included, Framework Agnostic
+### 2. Single Implementation, Multiple Surfaces
+
+**The CKM engine is implemented exactly once in Rust.** This is the Single Source of Truth. Every other language consumes it through thin FFI wrappers:
+
+- **Node.js/TypeScript**: napi-rs 3.8+ generates native `.node` bindings with auto-generated `.d.ts` types, plus WASM fallback
+- **Python**: PyO3 + Maturin generates native wheels for PyPI
+- **Go**: CGo FFI or WASM via wazero
+- **Rust**: Direct dependency — no wrapper needed
+
+This eliminates drift. When the algorithm changes, it changes once in Rust. All language surfaces automatically follow.
+
+### 3. Why Rust Core, Not Spec-Based
+
+The original architecture proposed independent implementations in each language, guided by spec documents (INTERFACE.md, SPEC.md). This was rejected because:
+
+- **Drift is inevitable.** Four independent implementations of the same algorithm *will* diverge on edge cases, even with conformance tests.
+- **Spec docs aren't executable.** A prose specification can be ambiguous. Code cannot.
+- **Maintenance scales linearly.** One bugfix in Rust vs. four bugfixes in four languages.
+- **The algorithm is small.** ~500 LOC of pure data transformation. The overhead of FFI wrappers is negligible compared to the cost of maintaining four codebases.
+
+The spec docs (INTERFACE.md, SPEC.md) remain as documentation of what the Rust code does — valuable for understanding, but not the source of truth.
+
+### 4. Batteries Included, Framework Agnostic
 
 Install `ckm`, wire one adapter, get topic-based help with human and machine output. Works with Commander.js, Citty, oclif, Clipanion (TS), Click, Typer (Python), Clap (Rust), Cobra (Go).
 
-### 3. Spec-Based Backbone
-
-The backbone is NOT a compiled binary. It is:
-- **`ckm.schema.json`** — what goes IN (the JSON Schema contract)
-- **`INTERFACE.md`** — what comes OUT (the API every SDK exposes)
-- **`SPEC.md`** — the deterministic algorithm (how input becomes output)
-- **`conformance/`** — the proof (test fixtures every implementation must pass)
-
-Each language implements natively. No WASM. No FFI. No shared runtime.
-
-### 4. Progressive Disclosure
+### 5. Progressive Disclosure
 
 CKM mandates four disclosure levels as a protocol requirement:
 
@@ -88,7 +97,7 @@ CKM mandates four disclosure levels as a protocol requirement:
 | 1J | `ckm <topic> --json` | Agent structured | 1200 |
 | 2 | `ckm --json` | Agent full index | 3000 |
 
-### 5. Zero Manual Maintenance
+### 6. Zero Manual Maintenance
 
 Topics are auto-derived from the manifest structure. No topic mapping files. No manually curated help text. The generator (forge-ts or any tool) extracts knowledge from source code. The SDK displays it.
 
@@ -106,11 +115,11 @@ CKM originated as a module inside [VersionGuard](https://github.com/kryptobasedd
 
 | Ecosystem | Package | Registry |
 |-----------|---------|----------|
-| TypeScript/JS | `ckm` | npm |
-| CLI binary | `ckm-cli` | npm |
-| Python | `ckm` | PyPI |
-| Rust | `ckm` | crates.io |
-| Go | `github.com/kryptobaseddev/ckm/go` | Go modules |
+| TypeScript/JS | `ckm` | npm (via napi-rs native + WASM) |
+| CLI binary | `ckm-cli` | npm + crates.io |
+| Python | `ckm` | PyPI (via PyO3 native wheel) |
+| Rust | `ckm` | crates.io (direct dependency) |
+| Go | `github.com/kryptobaseddev/ckm/go` | Go modules (via CGo/WASM) |
 
 No scopes. No org prefixes. Universal.
 
@@ -119,7 +128,6 @@ No scopes. No org prefixes. Universal.
 - **forge-ts** = generation (produces `ckm.json` from TypeScript source code)
 - **CKM SDK** = consumption/display (reads `ckm.json`, provides help/topics/adapters)
 - Any tool can generate a valid `ckm.json` — forge-ts is one generator, not the only one
-- Phase 6 of the rollout adds native v2 support to forge-ts
 
 ## Relationship to VersionGuard
 

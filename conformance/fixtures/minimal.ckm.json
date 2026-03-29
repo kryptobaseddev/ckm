@@ -1,0 +1,66 @@
+{
+  "$schema": "https://ckm.dev/schemas/v2.json",
+  "version": "2.0.0",
+  "meta": {
+    "project": "minimal-tool",
+    "language": "typescript",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "concepts": [
+    {
+      "id": "concept-calver-config",
+      "name": "CalVerConfig",
+      "slug": "calver",
+      "what": "Configures CalVer validation rules.",
+      "tags": ["config"],
+      "properties": [
+        {
+          "name": "format",
+          "type": { "canonical": "string", "original": "CalVerFormat" },
+          "description": "Calendar format used for version strings.",
+          "required": true,
+          "default": "YYYY.MM.DD"
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-validate",
+      "name": "validate",
+      "what": "Validates a calver version string against the configured format.",
+      "tags": ["calver"],
+      "inputs": [
+        {
+          "name": "version",
+          "type": { "canonical": "string" },
+          "required": true,
+          "description": "The version string to validate."
+        }
+      ],
+      "outputs": {
+        "type": { "canonical": "boolean" },
+        "description": "True if the version is valid."
+      }
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-no-future-dates",
+      "rule": "CalVer versions must not reference future dates.",
+      "enforcedBy": "validate",
+      "severity": "error"
+    }
+  ],
+  "workflows": [],
+  "configSchema": [
+    {
+      "key": "calver.format",
+      "type": { "canonical": "string", "original": "CalVerFormat" },
+      "description": "Calendar format used for version strings.",
+      "default": "YYYY.MM.DD",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "ckm-sdk",
+  "version": "0.1.0",
+  "description": "CKM — Codebase Knowledge Manifest SDK. Auto-derived topics, progressive disclosure, CLI framework adapters. Powered by Rust.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "ckm.node",
+    "ckm.linux-x64-gnu.node"
+  ],
+  "keywords": [
+    "ckm",
+    "cli",
+    "help",
+    "manifest",
+    "documentation",
+    "llm",
+    "agent",
+    "rust",
+    "napi"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kryptobaseddev/ckm.git",
+    "directory": "packages/node"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

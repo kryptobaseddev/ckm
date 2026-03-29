@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ckm.dev/schemas/v2.json",
+  "title": "CKM Manifest v2",
+  "description": "Codebase Knowledge Manifest v2 schema. Defines the universal contract for machine-readable operational knowledge in CLI tools.",
+  "type": "object",
+  "required": [
+    "$schema",
+    "version",
+    "meta",
+    "concepts",
+    "operations",
+    "constraints",
+    "workflows",
+    "configSchema"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Schema URL identifying this as a CKM v2 manifest.",
+      "const": "https://ckm.dev/schemas/v2.json"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the manifest format.",
+      "pattern": "^2\\.\\d+\\.\\d+$"
+    },
+    "meta": {
+      "$ref": "#/$defs/CkmMeta"
+    },
+    "concepts": {
+      "type": "array",
+      "description": "Domain concepts extracted from the codebase.",
+      "items": {
+        "$ref": "#/$defs/CkmConcept"
+      }
+    },
+    "operations": {
+      "type": "array",
+      "description": "Operations (functions/commands) the tool exposes.",
+      "items": {
+        "$ref": "#/$defs/CkmOperation"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Rules and constraints enforced by the tool.",
+      "items": {
+        "$ref": "#/$defs/CkmConstraint"
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "description": "Multi-step workflows for accomplishing goals.",
+      "items": {
+        "$ref": "#/$defs/CkmWorkflow"
+      }
+    },
+    "configSchema": {
+      "type": "array",
+      "description": "Configuration entries that control tool behavior.",
+      "items": {
+        "$ref": "#/$defs/CkmConfigEntry"
+      }
+    }
+  },
+  "$defs": {
+    "CkmMeta": {
+      "type": "object",
+      "description": "Metadata about the project and manifest provenance.",
+      "required": ["project", "language", "generator", "generated"],
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "Name of the project this manifest describes."
+        },
+        "language": {
+          "type": "string",
+          "description": "Primary programming language of the project (e.g., \"typescript\", \"python\", \"rust\", \"go\")."
+        },
+        "generator": {
+          "type": "string",
+          "description": "Tool and version that generated this manifest (e.g., \"forge-ts@0.21.1\")."
+        },
+        "generated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when this manifest was generated."
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the source repository."
+        }
+      }
+    },
+    "CkmConcept": {
+      "type": "object",
+      "description": "A domain concept extracted from the codebase. Concepts represent interfaces, types, or configuration objects.",
+      "required": ["id", "name", "slug", "what", "tags"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this concept."
+        },
+        "name": {
+          "type": "string",
+          "description": "Original source name of the concept (e.g., \"CalVerConfig\")."
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL/CLI-safe slug used for topic derivation (e.g., \"calver\"). This is the key field for v2 topic resolution.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "what": {
+          "type": "string",
+          "description": "One-line description of what this concept represents."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization and topic linkage (e.g., [\"config\"]).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "array",
+          "description": "Properties (fields) of this concept.",
+          "items": {
+            "$ref": "#/$defs/CkmProperty"
+          }
+        }
+      }
+    },
+    "CkmProperty": {
+      "type": "object",
+      "description": "A property (field) on a concept.",
+      "required": ["name", "type", "description", "required", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Property name."
+        },
+        "type": {
+          "$ref": "#/$defs/CkmTypeRef",
+          "description": "Type information for this property."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the property."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this property is required."
+        },
+        "default": {
+          "type": ["string", "null"],
+          "description": "Default value for this property, or null if no default."
+        }
+      }
+    },
+    "CkmTypeRef": {
+      "type": "object",
+      "description": "Language-agnostic type reference. Uses a canonical type set that maps to JSON Schema primitives, with optional original source type and enum values.",
+      "required": ["canonical"],
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "type": "string",
+          "description": "Canonical type from the portable type set.",
+          "enum": [
+            "string",
+            "boolean",
+            "number",
+            "integer",
+            "array",
+            "object",
+            "null",
+            "any"
+          ]
+        },
+        "original": {
+          "type": "string",
+          "description": "Original type name from the source language (e.g., \"CalVerFormat\"). Preserves source fidelity."
+        },
+        "enum": {
+          "type": "array",
+          "description": "Known allowed values (e.g., [\"YYYY.MM.DD\", \"YYYY.MM\"]).",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CkmOperation": {
+      "type": "object",
+      "description": "An operation (function or command) exposed by the tool.",
+      "required": ["id", "name", "what", "tags"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this operation."
+        },
+        "name": {
+          "type": "string",
+          "description": "Operation name."
+        },
+        "what": {
+          "type": "string",
+          "description": "One-line description of what this operation does."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization and topic linkage.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "description": "Input parameters for this operation.",
+          "items": {
+            "$ref": "#/$defs/CkmInput"
+          }
+        },
+        "outputs": {
+          "$ref": "#/$defs/CkmOutput",
+          "description": "Output/return value of this operation."
+        }
+      }
+    },
+    "CkmInput": {
+      "type": "object",
+      "description": "An input parameter for an operation.",
+      "required": ["name", "type", "required", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Parameter name."
+        },
+        "type": {
+          "$ref": "#/$defs/CkmTypeRef",
+          "description": "Type information for this parameter."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this parameter is required."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the parameter."
+        }
+      }
+    },
+    "CkmOutput": {
+      "type": "object",
+      "description": "The output/return value of an operation.",
+      "required": ["type", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/CkmTypeRef",
+          "description": "Type information for the return value."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the return value."
+        }
+      }
+    },
+    "CkmConstraint": {
+      "type": "object",
+      "description": "A rule or constraint enforced by the tool.",
+      "required": ["id", "rule", "enforcedBy", "severity"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this constraint."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Human-readable description of the rule."
+        },
+        "enforcedBy": {
+          "type": "string",
+          "description": "Name of the operation that enforces this constraint."
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level of the constraint violation.",
+          "enum": ["error", "warning", "info"]
+        }
+      }
+    },
+    "CkmWorkflow": {
+      "type": "object",
+      "description": "A multi-step workflow for accomplishing a goal.",
+      "required": ["id", "goal", "tags", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this workflow."
+        },
+        "goal": {
+          "type": "string",
+          "description": "What this workflow accomplishes."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "description": "Ordered steps to complete the workflow.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CkmWorkflowStep"
+          }
+        }
+      }
+    },
+    "CkmWorkflowStep": {
+      "type": "object",
+      "description": "A single step in a workflow.",
+      "required": ["action", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Whether this step is an executable command or a manual action.",
+          "enum": ["command", "manual"]
+        },
+        "value": {
+          "type": "string",
+          "description": "The command to run or manual action to take."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional explanatory note for this step."
+        }
+      }
+    },
+    "CkmConfigEntry": {
+      "type": "object",
+      "description": "A configuration entry that controls tool behavior.",
+      "required": ["key", "type", "description", "default", "required"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Dotted path identifying this config entry (e.g., \"calver.format\").",
+          "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9A-Z-]*)*$"
+        },
+        "type": {
+          "$ref": "#/$defs/CkmTypeRef",
+          "description": "Type information for this config value."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the config entry."
+        },
+        "default": {
+          "type": ["string", "null"],
+          "description": "Default value for this config entry, or null if no default."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this config entry is required."
+        }
+      }
+    }
+  }
+}

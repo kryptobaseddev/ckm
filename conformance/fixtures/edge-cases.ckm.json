@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ckm.dev/schemas/v2.json",
+  "version": "2.0.0",
+  "meta": {
+    "project": "edge-case-tool",
+    "language": "rust",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "concepts": [],
+  "operations": [],
+  "constraints": [],
+  "workflows": [],
+  "configSchema": []
+}

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://forge-ts.dev/schemas/ckm/v1.json",
+  "version": "1.0.0",
+  "project": "legacy-tool",
+  "generated": "2025-06-15T12:00:00.000Z",
+  "concepts": [
+    {
+      "id": "concept-CalVerConfig",
+      "name": "CalVerConfig",
+      "what": "Configures CalVer validation rules.",
+      "properties": [
+        {
+          "name": "format",
+          "type": "CalVerFormat",
+          "description": "Calendar format used for version strings."
+        },
+        {
+          "name": "preventFutureDates",
+          "type": "boolean",
+          "description": "Rejects versions that point to a future date."
+        }
+      ]
+    },
+    {
+      "id": "concept-SemVerConfig",
+      "name": "SemVerConfig",
+      "what": "Configures SemVer validation rules.",
+      "properties": [
+        {
+          "name": "allowVPrefix",
+          "type": "boolean",
+          "description": "Tolerates a leading v prefix."
+        }
+      ]
+    },
+    {
+      "id": "concept-ValidationResult",
+      "name": "ValidationResult",
+      "what": "Represents the outcome of a validation check.",
+      "properties": [
+        {
+          "name": "valid",
+          "type": "boolean",
+          "description": "Whether the validation passed."
+        },
+        {
+          "name": "errors",
+          "type": "string[]",
+          "description": "List of validation error messages."
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-validate",
+      "name": "validate",
+      "what": "Validates a calver version string.",
+      "inputs": [
+        {
+          "name": "version",
+          "type": "string",
+          "description": "The version string to validate."
+        }
+      ],
+      "outputs": {
+        "text": "ValidationResult"
+      }
+    },
+    {
+      "id": "op-parseSemVer",
+      "name": "parseSemVer",
+      "what": "Parses a semver version string into components.",
+      "inputs": [
+        {
+          "name": "version",
+          "type": "string",
+          "description": "The version string to parse."
+        }
+      ],
+      "outputs": {
+        "text": "SemVerComponents"
+      }
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-no-future-dates",
+      "rule": "CalVer versions must not reference future dates.",
+      "enforcedBy": "validate"
+    },
+    {
+      "id": "constraint-valid-semver",
+      "rule": "Version must conform to SemVer 2.0.0 specification.",
+      "enforcedBy": "parseSemVer"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "wf-release",
+      "goal": "Create a new version release.",
+      "steps": [
+        { "command": "npm run validate", "note": "Validate the current version." },
+        { "manual": "Review the changelog entries.", "note": "Ensure all changes are documented." },
+        { "command": "npm run release" }
+      ]
+    }
+  ],
+  "configSchema": [
+    {
+      "key": "CalVerConfig.format",
+      "type": "CalVerFormat",
+      "description": "Calendar format used for version strings.",
+      "default": "YYYY.MM.DD"
+    },
+    {
+      "key": "CalVerConfig.preventFutureDates",
+      "type": "boolean",
+      "description": "Rejects versions that point to a future date.",
+      "default": "true"
+    },
+    {
+      "key": "SemVerConfig.allowVPrefix",
+      "type": "boolean",
+      "description": "Tolerates a leading v prefix.",
+      "default": "false"
+    }
+  ]
+}

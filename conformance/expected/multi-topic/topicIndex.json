@@ -1,0 +1,35 @@
+{
+  "topics": [
+    {
+      "name": "calver",
+      "summary": "Configures CalVer validation rules.",
+      "concepts": 1,
+      "operations": 1,
+      "configFields": 1,
+      "constraints": 1
+    },
+    {
+      "name": "semver",
+      "summary": "Configures SemVer validation rules.",
+      "concepts": 1,
+      "operations": 1,
+      "configFields": 1,
+      "constraints": 1
+    },
+    {
+      "name": "git",
+      "summary": "Configures Git integration settings.",
+      "concepts": 1,
+      "operations": 1,
+      "configFields": 1,
+      "constraints": 1
+    }
+  ],
+  "ckm": {
+    "concepts": 4,
+    "operations": 3,
+    "constraints": 3,
+    "workflows": 0,
+    "configSchema": 3
+  }
+}

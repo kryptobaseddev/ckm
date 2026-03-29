@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "project": "minimal-tool",
+    "language": "typescript",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "counts": {
+    "concepts": 1,
+    "operations": 1,
+    "constraints": 1,
+    "workflows": 0,
+    "configKeys": 1,
+    "topics": 1
+  },
+  "topicNames": ["calver"]
+}

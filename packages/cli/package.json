@@ -1,0 +1,33 @@
+{
+  "name": "ckm-cli",
+  "version": "0.1.0",
+  "description": "CKM CLI — validate, migrate, and inspect ckm.json manifests",
+  "type": "module",
+  "bin": {
+    "ckm": "dist/main.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run"
+  },
+  "keywords": ["ckm", "cli", "manifest", "documentation"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kryptobaseddev/ckm.git",
+    "directory": "packages/cli"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ckm": "*",
+    "commander": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

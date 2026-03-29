@@ -1,0 +1,22 @@
+# Configures CalVer validation rules.
+
+## Concepts
+
+  CalVerConfig — Configures CalVer validation rules.
+    format: CalVerFormat = YYYY.MM.DD
+      Calendar format used for version strings.
+
+## Operations
+
+  validate() — Validates a calver version string against the configured format.
+    @param version: The version string to validate.
+
+## Config Fields
+
+  calver.format: CalVerFormat = YYYY.MM.DD
+    Calendar format used for version strings.
+
+## Constraints
+
+  [constraint-no-future-dates] CalVer versions must not reference future dates.
+    Enforced by: validate

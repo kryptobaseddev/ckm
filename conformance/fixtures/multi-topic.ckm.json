@@ -1,0 +1,179 @@
+{
+  "$schema": "https://ckm.dev/schemas/v2.json",
+  "version": "2.0.0",
+  "meta": {
+    "project": "multi-topic-tool",
+    "language": "typescript",
+    "generator": "hand-authored",
+    "generated": "2026-01-01T00:00:00.000Z"
+  },
+  "concepts": [
+    {
+      "id": "concept-calver-config",
+      "name": "CalVerConfig",
+      "slug": "calver",
+      "what": "Configures CalVer validation rules.",
+      "tags": ["config"],
+      "properties": [
+        {
+          "name": "format",
+          "type": { "canonical": "string", "original": "CalVerFormat" },
+          "description": "Calendar format for version strings.",
+          "required": true,
+          "default": "YYYY.MM.DD"
+        }
+      ]
+    },
+    {
+      "id": "concept-semver-config",
+      "name": "SemVerConfig",
+      "slug": "semver",
+      "what": "Configures SemVer validation rules.",
+      "tags": ["config"],
+      "properties": [
+        {
+          "name": "allowVPrefix",
+          "type": { "canonical": "boolean" },
+          "description": "Tolerates a leading v prefix.",
+          "required": true,
+          "default": null
+        }
+      ]
+    },
+    {
+      "id": "concept-git-config",
+      "name": "GitConfig",
+      "slug": "git",
+      "what": "Configures Git integration settings.",
+      "tags": ["config"],
+      "properties": [
+        {
+          "name": "tagPrefix",
+          "type": { "canonical": "string" },
+          "description": "Prefix used for Git version tags.",
+          "required": true,
+          "default": "v"
+        }
+      ]
+    },
+    {
+      "id": "concept-validation-result",
+      "name": "ValidationResult",
+      "slug": "validation",
+      "what": "Represents the outcome of a validation check.",
+      "tags": ["result"],
+      "properties": [
+        {
+          "name": "valid",
+          "type": { "canonical": "boolean" },
+          "description": "Whether the validation passed.",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "message",
+          "type": { "canonical": "string" },
+          "description": "Human-readable validation message.",
+          "required": false,
+          "default": null
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-validate-calver",
+      "name": "validateCalVer",
+      "what": "Validates a calver version string.",
+      "tags": ["calver"],
+      "inputs": [
+        {
+          "name": "version",
+          "type": { "canonical": "string" },
+          "required": true,
+          "description": "The version string to validate."
+        }
+      ],
+      "outputs": {
+        "type": { "canonical": "boolean" },
+        "description": "True if the version is valid."
+      }
+    },
+    {
+      "id": "op-validate-semver",
+      "name": "validateSemVer",
+      "what": "Validates a semver version string.",
+      "tags": ["semver"],
+      "inputs": [
+        {
+          "name": "version",
+          "type": { "canonical": "string" },
+          "required": true,
+          "description": "The version string to validate."
+        }
+      ],
+      "outputs": {
+        "type": { "canonical": "boolean" },
+        "description": "True if the version is valid."
+      }
+    },
+    {
+      "id": "op-git-tag",
+      "name": "createGitTag",
+      "what": "Creates a git tag for the current version.",
+      "tags": ["git"],
+      "inputs": [
+        {
+          "name": "version",
+          "type": { "canonical": "string" },
+          "required": true,
+          "description": "The version to tag."
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-no-future-dates",
+      "rule": "CalVer versions must not reference future dates.",
+      "enforcedBy": "validateCalVer",
+      "severity": "error"
+    },
+    {
+      "id": "constraint-valid-semver",
+      "rule": "Version must conform to SemVer 2.0.0 specification.",
+      "enforcedBy": "validateSemVer",
+      "severity": "error"
+    },
+    {
+      "id": "constraint-tag-exists",
+      "rule": "Git tag must not already exist in the repository.",
+      "enforcedBy": "createGitTag",
+      "severity": "error"
+    }
+  ],
+  "workflows": [],
+  "configSchema": [
+    {
+      "key": "calver.format",
+      "type": { "canonical": "string", "original": "CalVerFormat" },
+      "description": "Calendar format for version strings.",
+      "default": "YYYY.MM.DD",
+      "required": true
+    },
+    {
+      "key": "semver.allowVPrefix",
+      "type": { "canonical": "boolean" },
+      "description": "Tolerates a leading v prefix.",
+      "default": null,
+      "required": true
+    },
+    {
+      "key": "git.tagPrefix",
+      "type": { "canonical": "string" },
+      "description": "Prefix used for Git version tags.",
+      "default": "v",
+      "required": true
+    }
+  ]
+}

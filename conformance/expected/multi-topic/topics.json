@@ -1,0 +1,175 @@
+[
+  {
+    "name": "calver",
+    "summary": "Configures CalVer validation rules.",
+    "concepts": [
+      {
+        "id": "concept-calver-config",
+        "name": "CalVerConfig",
+        "slug": "calver",
+        "what": "Configures CalVer validation rules.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "format",
+            "type": { "canonical": "string", "original": "CalVerFormat" },
+            "description": "Calendar format for version strings.",
+            "required": true,
+            "default": "YYYY.MM.DD"
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-validate-calver",
+        "name": "validateCalVer",
+        "what": "Validates a calver version string.",
+        "tags": ["calver"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string" },
+            "required": true,
+            "description": "The version string to validate."
+          }
+        ],
+        "outputs": {
+          "type": { "canonical": "boolean" },
+          "description": "True if the version is valid."
+        }
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "calver.format",
+        "type": { "canonical": "string", "original": "CalVerFormat" },
+        "description": "Calendar format for version strings.",
+        "default": "YYYY.MM.DD",
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-no-future-dates",
+        "rule": "CalVer versions must not reference future dates.",
+        "enforcedBy": "validateCalVer",
+        "severity": "error"
+      }
+    ]
+  },
+  {
+    "name": "semver",
+    "summary": "Configures SemVer validation rules.",
+    "concepts": [
+      {
+        "id": "concept-semver-config",
+        "name": "SemVerConfig",
+        "slug": "semver",
+        "what": "Configures SemVer validation rules.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "allowVPrefix",
+            "type": { "canonical": "boolean" },
+            "description": "Tolerates a leading v prefix.",
+            "required": true,
+            "default": null
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-validate-semver",
+        "name": "validateSemVer",
+        "what": "Validates a semver version string.",
+        "tags": ["semver"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string" },
+            "required": true,
+            "description": "The version string to validate."
+          }
+        ],
+        "outputs": {
+          "type": { "canonical": "boolean" },
+          "description": "True if the version is valid."
+        }
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "semver.allowVPrefix",
+        "type": { "canonical": "boolean" },
+        "description": "Tolerates a leading v prefix.",
+        "default": null,
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-valid-semver",
+        "rule": "Version must conform to SemVer 2.0.0 specification.",
+        "enforcedBy": "validateSemVer",
+        "severity": "error"
+      }
+    ]
+  },
+  {
+    "name": "git",
+    "summary": "Configures Git integration settings.",
+    "concepts": [
+      {
+        "id": "concept-git-config",
+        "name": "GitConfig",
+        "slug": "git",
+        "what": "Configures Git integration settings.",
+        "tags": ["config"],
+        "properties": [
+          {
+            "name": "tagPrefix",
+            "type": { "canonical": "string" },
+            "description": "Prefix used for Git version tags.",
+            "required": true,
+            "default": "v"
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "id": "op-git-tag",
+        "name": "createGitTag",
+        "what": "Creates a git tag for the current version.",
+        "tags": ["git"],
+        "inputs": [
+          {
+            "name": "version",
+            "type": { "canonical": "string" },
+            "required": true,
+            "description": "The version to tag."
+          }
+        ]
+      }
+    ],
+    "configSchema": [
+      {
+        "key": "git.tagPrefix",
+        "type": { "canonical": "string" },
+        "description": "Prefix used for Git version tags.",
+        "default": "v",
+        "required": true
+      }
+    ],
+    "constraints": [
+      {
+        "id": "constraint-tag-exists",
+        "rule": "Git tag must not already exist in the repository.",
+        "enforcedBy": "createGitTag",
+        "severity": "error"
+      }
+    ]
+  }
+]
