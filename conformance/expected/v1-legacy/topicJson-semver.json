@@ -1,0 +1,74 @@
+{
+  "name": "semver",
+  "summary": "Configures SemVer validation rules.",
+  "concepts": [
+    {
+      "id": "concept-SemVerConfig",
+      "name": "SemVerConfig",
+      "slug": "semver",
+      "what": "Configures SemVer validation rules.",
+      "tags": [
+        "config"
+      ],
+      "properties": [
+        {
+          "name": "allowVPrefix",
+          "type": {
+            "canonical": "boolean",
+            "original": "boolean"
+          },
+          "description": "Tolerates a leading v prefix.",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-parseSemVer",
+      "name": "parseSemVer",
+      "what": "Parses a semver version string into components.",
+      "tags": [
+        "semver"
+      ],
+      "inputs": [
+        {
+          "name": "version",
+          "type": {
+            "canonical": "string",
+            "original": "string"
+          },
+          "required": true,
+          "description": "The version string to parse."
+        }
+      ],
+      "outputs": {
+        "type": {
+          "canonical": "object",
+          "original": "SemVerComponents"
+        },
+        "description": "SemVerComponents"
+      }
+    }
+  ],
+  "configSchema": [
+    {
+      "key": "semver.allowVPrefix",
+      "type": {
+        "canonical": "boolean",
+        "original": "boolean"
+      },
+      "description": "Tolerates a leading v prefix.",
+      "default": "false",
+      "required": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-valid-semver",
+      "rule": "Version must conform to SemVer 2.0.0 specification.",
+      "enforcedBy": "parseSemVer",
+      "severity": "error"
+    }
+  ]
+}

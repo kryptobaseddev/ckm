@@ -3,8 +3,7 @@
     "project": "legacy-tool",
     "language": "typescript",
     "generator": "unknown",
-    "generated": "2025-06-15T12:00:00.000Z",
-    "sourceUrl": null
+    "generated": "2025-06-15T12:00:00.000Z"
   },
   "counts": {
     "concepts": 3,
@@ -14,5 +13,8 @@
     "configKeys": 3,
     "topics": 2
   },
-  "topicNames": ["calver", "semver"]
+  "topicNames": [
+    "calver",
+    "semver"
+  ]
 }

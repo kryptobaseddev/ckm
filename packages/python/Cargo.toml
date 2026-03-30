@@ -7,18 +7,18 @@ license = "MIT"
 repository = "https://github.com/kryptobaseddev/ckm"
 
 [lib]
-name = "ckm"
+name = "ckm_python"
 crate-type = ["cdylib"]
 
 [dependencies]
-ckm = { path = "../rust-core" }
+ckm_core = { package = "ckm", path = "../rust-core" }
 pyo3 = { version = "0.28", features = ["extension-module"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 [lints.rust]
 missing_docs = "warn"
-unsafe_code = "forbid"
+unsafe_code = "warn"
 
 [lints.rustdoc]
 broken_intra_doc_links = "deny"

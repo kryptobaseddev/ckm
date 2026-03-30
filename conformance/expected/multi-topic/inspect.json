@@ -13,5 +13,9 @@
     "configKeys": 3,
     "topics": 3
   },
-  "topicNames": ["calver", "semver", "git"]
+  "topicNames": [
+    "calver",
+    "semver",
+    "git"
+  ]
 }

@@ -31,11 +31,11 @@ fn to_py_object<T: serde::Serialize>(py: Python<'_>, val: &T) -> PyResult<Py<PyA
 
 /// CKM engine — auto-generates topic index from a `ckm.json` manifest.
 ///
-/// Wraps the Rust `ckm::CkmEngine`. Accepts and returns JSON strings
+/// Wraps the Rust `ckm_core::CkmEngine`. Accepts and returns JSON strings
 /// or Python dicts for structured data.
 #[pyclass]
 struct CkmEngine {
-    inner: ckm::CkmEngine,
+    inner: ckm_core::CkmEngine,
 }
 
 #[pymethods]
@@ -103,7 +103,7 @@ impl CkmEngine {
 fn create_engine(manifest: &str) -> PyResult<CkmEngine> {
     let data = parse_json(manifest)?;
     Ok(CkmEngine {
-        inner: ckm::CkmEngine::new(data),
+        inner: ckm_core::CkmEngine::new(data),
     })
 }
 
@@ -119,7 +119,7 @@ fn create_engine(manifest: &str) -> PyResult<CkmEngine> {
 #[pyfunction]
 fn validate_manifest(py: Python<'_>, data: &str) -> PyResult<Py<PyAny>> {
     let parsed = parse_json(data)?;
-    let result = ckm::validate_manifest(&parsed);
+    let result = ckm_core::validate_manifest(&parsed);
     to_py_object(py, &result)
 }
 
@@ -135,7 +135,7 @@ fn validate_manifest(py: Python<'_>, data: &str) -> PyResult<Py<PyAny>> {
 #[pyfunction]
 fn migrate_v1_to_v2(py: Python<'_>, data: &str) -> PyResult<Py<PyAny>> {
     let parsed = parse_json(data)?;
-    let result = ckm::migrate_v1_to_v2(&parsed);
+    let result = ckm_core::migrate_v1_to_v2(&parsed);
     to_py_object(py, &result)
 }
 
@@ -151,14 +151,14 @@ fn migrate_v1_to_v2(py: Python<'_>, data: &str) -> PyResult<Py<PyAny>> {
 #[pyfunction]
 fn detect_version(data: &str) -> PyResult<u8> {
     let parsed = parse_json(data)?;
-    Ok(ckm::detect_version(&parsed))
+    Ok(ckm_core::detect_version(&parsed))
 }
 
 // ─── Module registration ───────────────────────────────────────────────────
 
 /// CKM — Codebase Knowledge Manifest SDK (powered by Rust core).
 #[pymodule]
-fn ckm(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn ckm_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CkmEngine>()?;
     m.add_function(wrap_pyfunction!(create_engine, m)?)?;
     m.add_function(wrap_pyfunction!(validate_manifest, m)?)?;

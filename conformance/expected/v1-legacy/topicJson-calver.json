@@ -3,7 +3,7 @@
   "summary": "Configures CalVer validation rules.",
   "concepts": [
     {
-      "id": "concept-calver-config",
+      "id": "concept-CalVerConfig",
       "name": "CalVerConfig",
       "slug": "calver",
       "what": "Configures CalVer validation rules.",
@@ -14,12 +14,20 @@
         {
           "name": "format",
           "type": {
-            "canonical": "string",
+            "canonical": "object",
             "original": "CalVerFormat"
           },
           "description": "Calendar format used for version strings.",
-          "required": true,
-          "default": "YYYY.MM.DD"
+          "required": true
+        },
+        {
+          "name": "preventFutureDates",
+          "type": {
+            "canonical": "boolean",
+            "original": "boolean"
+          },
+          "description": "Rejects versions that point to a future date.",
+          "required": true
         }
       ]
     }
@@ -28,7 +36,7 @@
     {
       "id": "op-validate",
       "name": "validate",
-      "what": "Validates a calver version string against the configured format.",
+      "what": "Validates a calver version string.",
       "tags": [
         "calver"
       ],
@@ -36,7 +44,8 @@
         {
           "name": "version",
           "type": {
-            "canonical": "string"
+            "canonical": "string",
+            "original": "string"
           },
           "required": true,
           "description": "The version string to validate."
@@ -44,9 +53,10 @@
       ],
       "outputs": {
         "type": {
-          "canonical": "boolean"
+          "canonical": "object",
+          "original": "ValidationResult"
         },
-        "description": "True if the version is valid."
+        "description": "ValidationResult"
       }
     }
   ],
@@ -54,11 +64,21 @@
     {
       "key": "calver.format",
       "type": {
-        "canonical": "string",
+        "canonical": "object",
         "original": "CalVerFormat"
       },
       "description": "Calendar format used for version strings.",
       "default": "YYYY.MM.DD",
+      "required": true
+    },
+    {
+      "key": "calver.preventFutureDates",
+      "type": {
+        "canonical": "boolean",
+        "original": "boolean"
+      },
+      "description": "Rejects versions that point to a future date.",
+      "default": "true",
       "required": true
     }
   ],

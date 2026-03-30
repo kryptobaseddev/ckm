@@ -13,5 +13,7 @@
     "configKeys": 3,
     "topics": 1
   },
-  "topicNames": ["format"]
+  "topicNames": [
+    "format"
+  ]
 }

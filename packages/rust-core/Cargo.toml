@@ -1,6 +1,6 @@
 [package]
 name = "ckm"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "CKM (Codebase Knowledge Manifest) — pure Rust core library. The SSoT for all language wrappers."
 license = "MIT"
@@ -9,6 +9,7 @@ repository = "https://github.com/kryptobaseddev/ckm"
 [lib]
 name = "ckm"
 path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

@@ -13,5 +13,7 @@
     "configKeys": 1,
     "topics": 1
   },
-  "topicNames": ["calver"]
+  "topicNames": [
+    "calver"
+  ]
 }

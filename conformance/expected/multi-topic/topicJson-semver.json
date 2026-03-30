@@ -1,0 +1,69 @@
+{
+  "name": "semver",
+  "summary": "Configures SemVer validation rules.",
+  "concepts": [
+    {
+      "id": "concept-semver-config",
+      "name": "SemVerConfig",
+      "slug": "semver",
+      "what": "Configures SemVer validation rules.",
+      "tags": [
+        "config"
+      ],
+      "properties": [
+        {
+          "name": "allowVPrefix",
+          "type": {
+            "canonical": "boolean"
+          },
+          "description": "Tolerates a leading v prefix.",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-validate-semver",
+      "name": "validateSemVer",
+      "what": "Validates a semver version string.",
+      "tags": [
+        "semver"
+      ],
+      "inputs": [
+        {
+          "name": "version",
+          "type": {
+            "canonical": "string"
+          },
+          "required": true,
+          "description": "The version string to validate."
+        }
+      ],
+      "outputs": {
+        "type": {
+          "canonical": "boolean"
+        },
+        "description": "True if the version is valid."
+      }
+    }
+  ],
+  "configSchema": [
+    {
+      "key": "semver.allowVPrefix",
+      "type": {
+        "canonical": "boolean"
+      },
+      "description": "Tolerates a leading v prefix.",
+      "required": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-valid-semver",
+      "rule": "Version must conform to SemVer 2.0.0 specification.",
+      "enforcedBy": "validateSemVer",
+      "severity": "error"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Configures Git integration settings.
+
+## Concepts
+
+  GitConfig — Configures Git integration settings.
+    tagPrefix: string = v
+      Prefix used for Git version tags.
+
+## Operations
+
+  createGitTag() — Creates a git tag for the current version.
+    @param version: The version to tag.
+
+## Config Fields
+
+  git.tagPrefix: string = v
+    Prefix used for Git version tags.
+
+## Constraints
+
+  [constraint-tag-exists] Git tag must not already exist in the repository.
+    Enforced by: createGitTag

@@ -17,7 +17,7 @@
             "canonical": "string",
             "original": "CalVerFormat"
           },
-          "description": "Calendar format used for version strings.",
+          "description": "Calendar format for version strings.",
           "required": true,
           "default": "YYYY.MM.DD"
         }
@@ -26,9 +26,9 @@
   ],
   "operations": [
     {
-      "id": "op-validate",
-      "name": "validate",
-      "what": "Validates a calver version string against the configured format.",
+      "id": "op-validate-calver",
+      "name": "validateCalVer",
+      "what": "Validates a calver version string.",
       "tags": [
         "calver"
       ],
@@ -57,7 +57,7 @@
         "canonical": "string",
         "original": "CalVerFormat"
       },
-      "description": "Calendar format used for version strings.",
+      "description": "Calendar format for version strings.",
       "default": "YYYY.MM.DD",
       "required": true
     }
@@ -66,7 +66,7 @@
     {
       "id": "constraint-no-future-dates",
       "rule": "CalVer versions must not reference future dates.",
-      "enforcedBy": "validate",
+      "enforcedBy": "validateCalVer",
       "severity": "error"
     }
   ]

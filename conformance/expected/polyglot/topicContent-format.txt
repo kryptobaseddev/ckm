@@ -1,0 +1,44 @@
+# Configuration for output formatting with all type variants.
+
+## Concepts
+
+  FormatConfig — Configuration for output formatting with all type variants.
+    template: string
+      Output template string.
+    enabled: boolean = true
+      Whether formatting is enabled.
+    precision: number
+      Floating-point precision for numeric output.
+    maxLines: integer
+      Maximum number of output lines.
+    includes: string[]
+      List of glob patterns to include.
+    metadata: Record<string, unknown>
+      Arbitrary metadata key-value pairs.
+    deprecated: null
+      Deprecated field, always null.
+    extra: any
+      Untyped extension point.
+
+## Operations
+
+  render() — Renders output using the format configuration.
+    @param data: The data object to render.
+    @param options: Optional rendering overrides.
+
+  countItems() — Counts items in the format output.
+    @param items: The array of items to count.
+
+## Config Fields
+
+  format.template: string
+    Output template string.
+  format.enabled: boolean = true
+    Whether formatting is enabled.
+  format.style: string = pretty
+    Output style preset.
+
+## Constraints
+
+  [constraint-max-lines] Output must not exceed maxLines setting.
+    Enforced by: render

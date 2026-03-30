@@ -1,0 +1,22 @@
+# Configures SemVer validation rules.
+
+## Concepts
+
+  SemVerConfig — Configures SemVer validation rules.
+    allowVPrefix: boolean
+      Tolerates a leading v prefix.
+
+## Operations
+
+  validateSemVer() — Validates a semver version string.
+    @param version: The version string to validate.
+
+## Config Fields
+
+  semver.allowVPrefix: boolean
+    Tolerates a leading v prefix.
+
+## Constraints
+
+  [constraint-valid-semver] Version must conform to SemVer 2.0.0 specification.
+    Enforced by: validateSemVer

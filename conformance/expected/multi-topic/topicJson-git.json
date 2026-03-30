@@ -1,0 +1,65 @@
+{
+  "name": "git",
+  "summary": "Configures Git integration settings.",
+  "concepts": [
+    {
+      "id": "concept-git-config",
+      "name": "GitConfig",
+      "slug": "git",
+      "what": "Configures Git integration settings.",
+      "tags": [
+        "config"
+      ],
+      "properties": [
+        {
+          "name": "tagPrefix",
+          "type": {
+            "canonical": "string"
+          },
+          "description": "Prefix used for Git version tags.",
+          "required": true,
+          "default": "v"
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-git-tag",
+      "name": "createGitTag",
+      "what": "Creates a git tag for the current version.",
+      "tags": [
+        "git"
+      ],
+      "inputs": [
+        {
+          "name": "version",
+          "type": {
+            "canonical": "string"
+          },
+          "required": true,
+          "description": "The version to tag."
+        }
+      ]
+    }
+  ],
+  "configSchema": [
+    {
+      "key": "git.tagPrefix",
+      "type": {
+        "canonical": "string"
+      },
+      "description": "Prefix used for Git version tags.",
+      "default": "v",
+      "required": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-tag-exists",
+      "rule": "Git tag must not already exist in the repository.",
+      "enforcedBy": "createGitTag",
+      "severity": "error"
+    }
+  ]
+}

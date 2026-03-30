@@ -63,6 +63,17 @@
       "items": {
         "$ref": "#/$defs/CkmConfigEntry"
       }
+    },
+    "topics": {
+      "type": "array",
+      "description": "Producer-declared topics. When present, these override engine-derived topics.",
+      "items": {
+        "$ref": "#/$defs/CkmDeclaredTopic"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Producer-defined extension data at the manifest level."
     }
   },
   "$defs": {
@@ -132,6 +143,24 @@
           "items": {
             "$ref": "#/$defs/CkmProperty"
           }
+        },
+        "rules": {
+          "type": "array",
+          "description": "Validation rules extracted from remarks or constraint tags.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relatedTo": {
+          "type": "array",
+          "description": "Related concept names from @see tags or type references.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Producer-defined extension data. CKM passes this through without validation."
         }
       }
     },
@@ -221,6 +250,13 @@
             "type": "string"
           }
         },
+        "preconditions": {
+          "type": "array",
+          "description": "Preconditions that must be met before invoking this operation.",
+          "items": {
+            "type": "string"
+          }
+        },
         "inputs": {
           "type": "array",
           "description": "Input parameters for this operation.",
@@ -231,6 +267,24 @@
         "outputs": {
           "$ref": "#/$defs/CkmOutput",
           "description": "Output/return value of this operation."
+        },
+        "exitCodes": {
+          "type": "object",
+          "description": "Exit codes and their meanings. Keys are exit code strings, values are descriptions.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "checksPerformed": {
+          "type": "array",
+          "description": "Checks or validations performed by this operation.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Producer-defined extension data."
         }
       }
     },
@@ -296,6 +350,22 @@
           "type": "string",
           "description": "Severity level of the constraint violation.",
           "enum": ["error", "warning", "info"]
+        },
+        "configKey": {
+          "type": "string",
+          "description": "Config key that controls this constraint."
+        },
+        "default": {
+          "type": "string",
+          "description": "Default value for the config key."
+        },
+        "security": {
+          "type": "boolean",
+          "description": "Whether this constraint has security implications."
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Producer-defined extension data."
         }
       }
     },
@@ -327,6 +397,10 @@
           "items": {
             "$ref": "#/$defs/CkmWorkflowStep"
           }
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Producer-defined extension data."
         }
       }
     },
@@ -348,6 +422,10 @@
         "note": {
           "type": "string",
           "description": "Optional explanatory note for this step."
+        },
+        "expect": {
+          "type": "string",
+          "description": "Expected outcome of this step."
         }
       }
     },
@@ -377,6 +455,62 @@
         "required": {
           "type": "boolean",
           "description": "Whether this config entry is required."
+        },
+        "effect": {
+          "type": "string",
+          "description": "Downstream effect or behavior this config entry controls."
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Producer-defined extension data."
+        }
+      }
+    },
+    "CkmDeclaredTopic": {
+      "type": "object",
+      "description": "A producer-declared topic grouping for the manifest. When present, these override engine-derived topics.",
+      "required": ["name", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Topic slug (e.g., \"getting-started\")."
+        },
+        "summary": {
+          "type": "string",
+          "description": "One-line summary of this topic."
+        },
+        "conceptIds": {
+          "type": "array",
+          "description": "IDs of concepts belonging to this topic.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "operationIds": {
+          "type": "array",
+          "description": "IDs of operations belonging to this topic.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraintIds": {
+          "type": "array",
+          "description": "IDs of constraints belonging to this topic.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "configKeys": {
+          "type": "array",
+          "description": "Config key prefixes belonging to this topic.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
         }
       }
     }
