@@ -1,5 +1,5 @@
 {
-  "name": "@kryptobaseddev/ckm-cli",
+  "name": "ckm-manifest-cli",
   "version": "2026.3.2",
   "description": "CKM CLI — browse, validate, migrate, and inspect Codebase Knowledge Manifests",
   "bin": {
