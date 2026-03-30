@@ -1,0 +1,21 @@
+{
+  "name": "@kryptobaseddev/ckm-cli",
+  "version": "2026.3.2",
+  "description": "CKM CLI — browse, validate, migrate, and inspect Codebase Knowledge Manifests",
+  "bin": {
+    "ckm": "ckm"
+  },
+  "files": [
+    "ckm",
+    "README.md"
+  ],
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "keywords": ["ckm", "cli", "manifest", "documentation", "llm"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kryptobaseddev/ckm.git",
+    "directory": "packages/cli-rs"
+  }
+}
