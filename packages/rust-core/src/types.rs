@@ -37,7 +37,7 @@ pub enum CanonicalType {
 }
 
 impl CanonicalType {
-    /// Parses a string into a CanonicalType. Defaults to Object for unknown types.
+    /// Parses a string into a `CanonicalType`. Defaults to Object for unknown types.
     pub fn parse(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "string" => Self::String,

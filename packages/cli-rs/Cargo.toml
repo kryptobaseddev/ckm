@@ -1,7 +1,7 @@
 [package]
 name = "ckm-cli"
 version = "2026.3.1"
-edition = "2021"
+edition = "2024"
 description = "CKM CLI — browse, validate, migrate, and inspect Codebase Knowledge Manifests."
 license = "MIT"
 repository = "https://github.com/kryptobaseddev/ckm"
@@ -11,6 +11,23 @@ name = "ckm"
 path = "src/main.rs"
 
 [dependencies]
-ckm = { version = "2026.3.1" }
+ckm = { version = "2026.3.1", path = "../rust-core" }
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
+
+[lints.rust]
+missing_docs = "warn"
+
+[lints.rustdoc]
+broken_intra_doc_links = "deny"
+invalid_html_tags = "deny"
+missing_crate_level_docs = "warn"
+bare_urls = "warn"
+redundant_explicit_links = "warn"
+unescaped_backticks = "warn"
+
+[lints.clippy]
+missing_safety_doc = "deny"
+missing_errors_doc = "warn"
+missing_panics_doc = "warn"
+doc_markdown = "warn"

@@ -195,7 +195,11 @@ fn test_engine_multi_topic_count() {
     let data = load_fixture("multi-topic.ckm.json");
     let engine = CkmEngine::new(data);
     // 3 config concepts + 1 unclaimed operation topic = 4 topics (all concepts become topics)
-    assert!(engine.topics().len() >= 3, "Expected at least 3 topics, got {}", engine.topics().len());
+    assert!(
+        engine.topics().len() >= 3,
+        "Expected at least 3 topics, got {}",
+        engine.topics().len()
+    );
 }
 
 #[test]
@@ -263,7 +267,11 @@ fn test_engine_multi_topic_inspect() {
     assert_eq!(result.counts.concepts, 4);
     assert_eq!(result.counts.operations, 3);
     assert_eq!(result.counts.constraints, 3);
-    assert!(result.counts.topics >= 3, "Expected at least 3 topics, got {}", result.counts.topics);
+    assert!(
+        result.counts.topics >= 3,
+        "Expected at least 3 topics, got {}",
+        result.counts.topics
+    );
 }
 
 // ─── Engine: Edge Cases Fixture ─────────────────────────────────────────
@@ -438,7 +446,11 @@ fn test_migration_v1_engine_integration() {
     // Engine should auto-detect v1 and migrate
     assert_eq!(engine.manifest().version, "2.0.0");
     // CalVerConfig and SemVerConfig are tagged "config", unclaimed ops may add more
-    assert!(engine.topics().len() >= 2, "Expected at least 2 topics, got {}", engine.topics().len());
+    assert!(
+        engine.topics().len() >= 2,
+        "Expected at least 2 topics, got {}",
+        engine.topics().len()
+    );
 
     let names: Vec<&str> = engine.topics().iter().map(|t| t.name.as_str()).collect();
     assert!(names.contains(&"calver"));

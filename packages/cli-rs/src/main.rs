@@ -1,3 +1,7 @@
+//! CKM CLI — browse, validate, migrate, and inspect Codebase Knowledge Manifests.
+//!
+//! A pure Rust binary built on the `ckm` core crate.
+
 use std::fs;
 use std::path::PathBuf;
 use std::process;
@@ -5,7 +9,7 @@ use std::process;
 use clap::{Parser, Subcommand};
 use serde_json::Value;
 
-use ckm::{detect_version, migrate_v1_to_v2, validate_manifest, CkmEngine};
+use ckm::{CkmEngine, detect_version, migrate_v1_to_v2, validate_manifest};
 
 // ─── CLI Definition ────────────────────────────────────────────────────
 
@@ -95,8 +99,8 @@ fn resolve_manifest_path(explicit: Option<PathBuf>) -> Result<PathBuf, String> {
 
 /// Reads and parses a JSON file from disk.
 fn read_json(path: &PathBuf) -> Result<Value, String> {
-    let content =
-        fs::read_to_string(path).map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
+    let content = fs::read_to_string(path)
+        .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
     serde_json::from_str(&content)
         .map_err(|e| format!("Failed to parse {} as JSON: {}", path.display(), e))
 }
@@ -140,7 +144,8 @@ fn cmd_browse(topic: Option<String>, json: bool, file: Option<PathBuf>) {
             Some(ref name) => match engine.topic_content(name) {
                 Some(content) => println!("{}", content),
                 None => {
-                    let available: Vec<&str> = engine.topics().iter().map(|t| t.name.as_str()).collect();
+                    let available: Vec<&str> =
+                        engine.topics().iter().map(|t| t.name.as_str()).collect();
                     eprintln!("Error: Unknown topic \"{}\"", name);
                     if available.is_empty() {
                         eprintln!("No topics available in this manifest.");

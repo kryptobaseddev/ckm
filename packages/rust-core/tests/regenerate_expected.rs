@@ -16,14 +16,21 @@ fn expected_dir() -> PathBuf {
 
 fn load_fixture(name: &str) -> serde_json::Value {
     let path = fixtures_dir().join(name);
-    let content = fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read {}", path.display()));
+    let content =
+        fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read {}", path.display()));
     serde_json::from_str(&content).unwrap_or_else(|_| panic!("Failed to parse {}", path.display()))
 }
 
 #[test]
 #[ignore] // Only run manually to regenerate
 fn regenerate_all_expected_outputs() {
-    let fixtures = ["minimal", "multi-topic", "polyglot", "v1-legacy", "edge-cases"];
+    let fixtures = [
+        "minimal",
+        "multi-topic",
+        "polyglot",
+        "v1-legacy",
+        "edge-cases",
+    ];
 
     for name in &fixtures {
         let fixture_file = format!("{}.ckm.json", name);
@@ -34,35 +41,59 @@ fn regenerate_all_expected_outputs() {
         // detectVersion
         let version = detect_version(&data);
         let detect_json = serde_json::json!({ "version": version });
-        fs::write(out_dir.join("detectVersion.json"), serde_json::to_string_pretty(&detect_json).unwrap()).unwrap();
+        fs::write(
+            out_dir.join("detectVersion.json"),
+            serde_json::to_string_pretty(&detect_json).unwrap(),
+        )
+        .unwrap();
 
         // validateManifest
         let validation = validate_manifest(&data);
-        fs::write(out_dir.join("validate.json"), serde_json::to_string_pretty(&validation).unwrap()).unwrap();
+        fs::write(
+            out_dir.join("validate.json"),
+            serde_json::to_string_pretty(&validation).unwrap(),
+        )
+        .unwrap();
 
         // Engine
         let engine = CkmEngine::new(data);
 
         // topics
-        let topics_json: Vec<serde_json::Value> = engine.topics().iter().map(|t| {
-            serde_json::json!({
-                "name": t.name,
-                "summary": t.summary,
-                "conceptCount": t.concepts.len(),
-                "operationCount": t.operations.len(),
-                "configCount": t.config_schema.len(),
-                "constraintCount": t.constraints.len(),
+        let topics_json: Vec<serde_json::Value> = engine
+            .topics()
+            .iter()
+            .map(|t| {
+                serde_json::json!({
+                    "name": t.name,
+                    "summary": t.summary,
+                    "conceptCount": t.concepts.len(),
+                    "operationCount": t.operations.len(),
+                    "configCount": t.config_schema.len(),
+                    "constraintCount": t.constraints.len(),
+                })
             })
-        }).collect();
-        fs::write(out_dir.join("topics.json"), serde_json::to_string_pretty(&topics_json).unwrap()).unwrap();
+            .collect();
+        fs::write(
+            out_dir.join("topics.json"),
+            serde_json::to_string_pretty(&topics_json).unwrap(),
+        )
+        .unwrap();
 
         // topicIndex (getTopicJson with no arg)
         let topic_index = engine.topic_json(None);
-        fs::write(out_dir.join("topicIndex.json"), serde_json::to_string_pretty(&topic_index).unwrap()).unwrap();
+        fs::write(
+            out_dir.join("topicIndex.json"),
+            serde_json::to_string_pretty(&topic_index).unwrap(),
+        )
+        .unwrap();
 
         // inspect
         let inspect = engine.inspect();
-        fs::write(out_dir.join("inspect.json"), serde_json::to_string_pretty(&inspect).unwrap()).unwrap();
+        fs::write(
+            out_dir.join("inspect.json"),
+            serde_json::to_string_pretty(&inspect).unwrap(),
+        )
+        .unwrap();
 
         // Per-topic content and JSON
         for topic in engine.topics() {
@@ -75,7 +106,11 @@ fn regenerate_all_expected_outputs() {
             // topicJson
             let topic_json = engine.topic_json(Some(&topic.name));
             let filename = format!("topicJson-{}.json", topic.name);
-            fs::write(out_dir.join(&filename), serde_json::to_string_pretty(&topic_json).unwrap()).unwrap();
+            fs::write(
+                out_dir.join(&filename),
+                serde_json::to_string_pretty(&topic_json).unwrap(),
+            )
+            .unwrap();
         }
 
         println!("Regenerated: {}", name);

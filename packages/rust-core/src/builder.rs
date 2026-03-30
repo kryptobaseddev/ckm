@@ -118,7 +118,8 @@ impl CkmManifestBuilder {
         self
     }
 
-    /// Adds a property with an original type annotation (e.g., "CalVerFormat").
+    /// Adds a property with an original type annotation (e.g., "`CalVerFormat`").
+    #[allow(clippy::too_many_arguments)]
     pub fn add_concept_property_typed(
         mut self,
         concept_slug: &str,
@@ -293,7 +294,7 @@ impl CkmManifestBuilder {
         self
     }
 
-    /// Builds the final CkmManifest. Consumes the builder.
+    /// Builds the final `CkmManifest`. Consumes the builder.
     pub fn build(self) -> CkmManifest {
         CkmManifest {
             schema: "https://ckm.dev/schemas/v2.json".to_string(),
@@ -341,7 +342,13 @@ mod tests {
             .add_operation("validate", "Validates a version.", &["calver"])
             .add_operation_input("validate", "version", "string", true, "Version string.")
             .add_constraint("No future dates", "validate", "error")
-            .add_config("calver.format", "string", "Calendar format.", true, Some("YYYY.MM.DD"))
+            .add_config(
+                "calver.format",
+                "string",
+                "Calendar format.",
+                true,
+                Some("YYYY.MM.DD"),
+            )
             .build();
 
         assert_eq!(manifest.meta.project, "test-tool");
@@ -355,8 +362,12 @@ mod tests {
 
     #[test]
     fn test_builder_serializes_to_valid_json() {
-        let builder = CkmManifestBuilder::new("test", "rust")
-            .add_concept("Config", "config", "Main config.", &["config"]);
+        let builder = CkmManifestBuilder::new("test", "rust").add_concept(
+            "Config",
+            "config",
+            "Main config.",
+            &["config"],
+        );
         let json = builder.build_json();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed["version"], "2.0.0");

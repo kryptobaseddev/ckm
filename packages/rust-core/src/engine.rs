@@ -253,7 +253,11 @@ fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
             .operations
             .iter()
             .filter(|op| {
-                if op.tags.iter().any(|t| t.to_lowercase() == slug.to_lowercase()) {
+                if op
+                    .tags
+                    .iter()
+                    .any(|t| t.to_lowercase() == slug.to_lowercase())
+                {
                     return true;
                 }
                 matches_by_keyword(&op.name, &op.what, slug, &concept_names)
@@ -280,10 +284,15 @@ fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
             .constraints
             .iter()
             .filter(|c| {
-                if concept_names.iter().any(|name| c.enforced_by.contains(name.as_str())) {
+                if concept_names
+                    .iter()
+                    .any(|name| c.enforced_by.contains(name.as_str()))
+                {
                     return true;
                 }
-                matched_operations.iter().any(|op| c.enforced_by.contains(op.name.as_str()))
+                matched_operations
+                    .iter()
+                    .any(|op| c.enforced_by.contains(op.name.as_str()))
             })
             .cloned()
             .collect();
@@ -336,7 +345,11 @@ fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
         // Try to find a topic whose operations match enforcedBy
         let mut matched = false;
         for topic in &mut topics {
-            if topic.operations.iter().any(|op| constraint.enforced_by.contains(op.name.as_str())) {
+            if topic
+                .operations
+                .iter()
+                .any(|op| constraint.enforced_by.contains(op.name.as_str()))
+            {
                 topic.constraints.push(constraint.clone());
                 matched = true;
                 break;

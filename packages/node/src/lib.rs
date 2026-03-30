@@ -176,9 +176,18 @@ impl CkmManifestBuilderWrapper {
 
     /// Adds a concept.
     #[napi]
-    pub fn add_concept(&mut self, name: String, slug: String, what: String, tags: Vec<String>) -> &Self {
+    pub fn add_concept(
+        &mut self,
+        name: String,
+        slug: String,
+        what: String,
+        tags: Vec<String>,
+    ) -> &Self {
         let tag_refs: Vec<&str> = tags.iter().map(|s| s.as_str()).collect();
-        self.inner = self.inner.clone().add_concept(&name, &slug, &what, &tag_refs);
+        self.inner = self
+            .inner
+            .clone()
+            .add_concept(&name, &slug, &what, &tag_refs);
         self
     }
 
@@ -235,7 +244,10 @@ impl CkmManifestBuilderWrapper {
     /// Adds a constraint.
     #[napi]
     pub fn add_constraint(&mut self, rule: String, enforced_by: String, severity: String) -> &Self {
-        self.inner = self.inner.clone().add_constraint(&rule, &enforced_by, &severity);
+        self.inner = self
+            .inner
+            .clone()
+            .add_constraint(&rule, &enforced_by, &severity);
         self
     }
 

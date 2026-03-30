@@ -2,7 +2,7 @@
 //!
 //! This crate contains ALL CKM algorithms: types, engine, migration,
 //! validation, and formatting. It has zero FFI concerns. Language
-//! wrappers (napi-rs, PyO3, CGo) depend on this crate.
+//! wrappers (napi-rs, `PyO3`, `CGo`) depend on this crate.
 //!
 //! # Quick Start
 //!
@@ -39,6 +39,7 @@ pub mod types;
 pub mod validate;
 
 // Re-exports for convenience
+pub use builder::CkmManifestBuilder;
 pub use engine::CkmEngine;
 pub use migrate::{detect_version, migrate_v1_to_v2};
 pub use types::{
@@ -48,4 +49,3 @@ pub use types::{
     CkmWorkflow, CkmWorkflowStep, TopicJsonResult,
 };
 pub use validate::validate_manifest;
-pub use builder::CkmManifestBuilder;
