@@ -38,12 +38,12 @@ Bootstrap the monorepo and backbone documents.
 - JSON Schema draft 2020-12 defining the v2 manifest format
 - **Status**: DONE
 
-### E0-T03: INTERFACE.md
-- API surface documentation derived from Rust core
+### E0-T03: INTERFACE.md (`docs/specs/INTERFACE.md`)
+- API surface documentation derived from Rust core — all types, engine, builder, format functions
 - **Status**: DONE (updated for Rust-core SSoT)
 
-### E0-T04: SPEC.md
-- Algorithm documentation derived from Rust core
+### E0-T04: SPEC.md (`docs/specs/SPEC.md`)
+- Algorithm documentation derived from Rust core — topic derivation, migration, validation, formatting
 - **Status**: DONE (updated for Rust-core SSoT)
 
 ### E0-T05: Conformance test fixtures
@@ -62,74 +62,99 @@ Bootstrap the monorepo and backbone documents.
 **THE SSoT.** All CKM algorithms in pure Rust. Zero FFI concerns.
 
 ### E1-T01: Scaffold rust-core crate
-- `Cargo.toml`: name `ckm-core`, serde + serde_json
+- `Cargo.toml`: name `ckm`, serde + serde_json
 - **Depends on**: E0-T01
 - **AC**: `cargo build` and `cargo test` pass
+- **Status**: DONE
 
 ### E1-T02: Types (`src/types.rs`)
 - All INTERFACE.md types as `#[derive(Serialize, Deserialize)]` structs
+- Includes Extensions, CkmDeclaredTopic, CkmManifestBuilder, and all new fields (rules, relatedTo, preconditions, exitCodes, checksPerformed, configKey, default, security, expect, effect, extensions on all entities)
 - **AC**: Can roundtrip-deserialize all conformance fixtures
+- **Status**: DONE
 
 ### E1-T03: Engine (`src/engine.rs`)
-- `CkmEngine::new(data)`, topic derivation per SPEC.md
+- `CkmEngine::new(data)`, topic derivation: all concepts with non-empty slugs become topics (not just *Config)
+- Producer-declared topics: when manifest has `topics` field, resolves IDs instead of auto-deriving
 - All query methods: topics, topic_index, topic_content, topic_json, manifest, inspect
 - **AC**: All conformance fixtures pass
+- **Status**: DONE
 
 ### E1-T04: Migration (`src/migrate.rs`)
 - `detect_version()`, `migrate_v1_to_v2()`
 - **AC**: v1-legacy fixture migrates correctly
+- **Status**: DONE
 
 ### E1-T05: Validation (`src/validate.rs`)
-- `validate_manifest()` with JSON pointer error paths
+- `validate_manifest()` with JSON pointer error paths (lightweight structural validation, no jsonschema dependency)
 - **AC**: Valid v2 passes, v1 fails, invalid data returns correct errors
+- **Status**: DONE
 
 ### E1-T06: Formatter (`src/format.rs`)
 - Plain text terminal output, token budget compliance
 - **AC**: Output matches expected text fixtures
+- **Status**: DONE
 
 ### E1-T07: Full conformance suite
 - Load all `conformance/fixtures/`, compare to `conformance/expected/`
+- 68 tests passing (25 unit + 43 conformance/integration)
 - **AC**: All fixtures pass, exact-match on expected outputs
+- **Status**: DONE
 
 ### E1-T08: Publish to crates.io
-- Crate name: `ckm`
+- Crate name: `ckm`, version: `0.1.0`
 - **AC**: `cargo add ckm` works
+- **Status**: DONE
+
+### E1-T09: Manifest Builder (`src/builder.rs`)
+- `CkmManifestBuilder::new()` fluent API for generators
+- Methods: `.generator()`, `.source_url()`, `.add_concept()`, `.add_concept_property()`, `.add_concept_property_typed()`, `.add_operation()`, `.add_operation_input()`, `.set_operation_output()`, `.add_constraint()`, `.add_workflow()`, `.add_workflow_command()`, `.add_workflow_manual()`, `.add_config()`, `.build()`, `.build_json()`
+- **AC**: Builder produces valid v2 manifests
+- **Status**: DONE
 
 ---
 
 ## Epic 2: Node.js Wrapper (`packages/node/`)
 
-napi-rs 3.8+ wrapper around rust-core.
+napi-rs 3 wrapper around rust-core.
 
 ### E2-T01: Scaffold napi-rs project
-- `Cargo.toml` with napi-rs deps, `package.json` for npm
+- `Cargo.toml` (crate: `ckm-node`) with napi-rs 3 deps, `package.json` (name: `ckm-sdk`)
 - **Depends on**: E1-T07
 - **AC**: `napi build` produces `.node` file
+- **Status**: DONE
 
 ### E2-T02: Wrap engine functions
 - `#[napi]` annotations on: `createCkmEngine`, `validateManifest`, `migrateV1toV2`, `detectVersion`
-- Auto-generated `.d.ts` TypeScript types
-- **AC**: `import { createCkmEngine } from 'ckm'` works in Node.js
+- `CkmManifestBuilderWrapper` for producer API (`createManifestBuilder`)
+- Hand-maintained `.d.ts` TypeScript types with all CKM types exported
+- **AC**: `const { createCkmEngine } = require('ckm-sdk')` works in Node.js
+- **Status**: DONE
 
 ### E2-T03: WASM fallback build
 - `wasm32-wasip1-threads` target for unsupported platforms
 - **AC**: WASM fallback loads when native binary unavailable
+- **Status**: PENDING
 
 ### E2-T04: Cross-platform builds
 - GitHub Actions matrix for linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
 - **AC**: All platform binaries build in CI
+- **Status**: PENDING
 
 ### E2-T05: Commander.js adapter
 - Adapter written in TypeScript, calls engine via napi-rs binding
 - **AC**: Integration test passes
+- **Status**: PENDING
 
 ### E2-T06: Additional TS adapters (Citty, oclif, Clipanion)
 - Each adapter ~50 LOC calling engine via binding
 - **AC**: Integration tests pass
+- **Status**: PENDING
 
-### E2-T07: Publish `ckm` to npm
-- Platform-specific packages + root package
-- **AC**: `npm install ckm` works, types resolve
+### E2-T07: Publish `ckm-sdk` to npm
+- Published as `ckm-sdk@0.3.1` (linux-x64-gnu native binary)
+- **AC**: `npm install ckm-sdk` works, types resolve
+- **Status**: DONE
 
 ---
 
@@ -178,22 +203,26 @@ CGo FFI or WASM (via wazero) wrapper around rust-core.
 
 ---
 
-## Epic 5: Standalone CLI (`packages/cli/`)
+## Epic 5: Standalone CLI (`packages/cli-rs/`)
 
 Pure Rust binary depending on rust-core directly.
 
 ### E5-T01: Scaffold CLI binary
-- Clap-based CLI with subcommands
+- Clap-based CLI with subcommands (browse, validate, migrate, inspect)
 - **Depends on**: E1-T07
 - **AC**: `cargo build` produces `ckm` binary
+- **Status**: DONE
 
 ### E5-T02: Commands
-- `ckm browse [topic] [--json]`, `ckm validate <file>`, `ckm migrate <file>`, `ckm inspect <file>`
+- `ckm browse [topic] [--json] [--file <path>]`, `ckm validate <file>`, `ckm migrate <file> [--dry-run] [--output <path>]`, `ckm inspect <file>`
+- File resolution: explicit `--file`, then `./ckm.json`, `./docs/ckm.json`, `./.ckm/ckm.json`
 - **AC**: All commands work with conformance fixtures
+- **Status**: DONE
 
 ### E5-T03: Publish
 - crates.io as `ckm-cli`, npm as `ckm-cli` (optional)
 - **AC**: `cargo install ckm-cli` works
+- **Status**: PENDING
 
 ---
 
@@ -223,7 +252,7 @@ E0 (foundation) ──> E1 (rust-core)
           +-----------+-----------+-----------+
           |           |           |           |
           v           v           v           v
-        E2 (node)   E3 (python) E4 (go)    E5 (cli)
+        E2 (node)   E3 (python) E4 (go)    E5 (cli-rs)
           |           |
           v           v
         E6 (forge-ts) ──> E7 (VG migration)

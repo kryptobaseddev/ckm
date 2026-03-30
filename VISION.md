@@ -64,7 +64,7 @@ The SDK then auto-derives **topics** from this manifest — zero manual mapping.
 
 **The CKM engine is implemented exactly once in Rust.** This is the Single Source of Truth. Every other language consumes it through thin FFI wrappers:
 
-- **Node.js/TypeScript**: napi-rs 3.8+ generates native `.node` bindings with auto-generated `.d.ts` types, plus WASM fallback
+- **Node.js/TypeScript**: napi-rs 3 generates native `.node` bindings with hand-maintained `.d.ts` types
 - **Python**: PyO3 + Maturin generates native wheels for PyPI
 - **Go**: CGo FFI or WASM via wazero
 - **Rust**: Direct dependency — no wrapper needed
@@ -84,7 +84,7 @@ The spec docs (INTERFACE.md, SPEC.md) remain as documentation of what the Rust c
 
 ### 4. Batteries Included, Framework Agnostic
 
-Install `ckm`, wire one adapter, get topic-based help with human and machine output. Works with Commander.js, Citty, oclif, Clipanion (TS), Click, Typer (Python), Clap (Rust), Cobra (Go).
+Install `ckm-sdk` (npm) or `ckm` (crates.io/PyPI), wire one adapter, get topic-based help with human and machine output. Works with Commander.js, Citty, oclif, Clipanion (TS), Click, Typer (Python), Clap (Rust), Cobra (Go).
 
 ### 5. Progressive Disclosure
 
@@ -105,7 +105,7 @@ Topics are auto-derived from the manifest structure. No topic mapping files. No 
 
 - **Not a documentation generator.** CKM does not parse source code. Generators like forge-ts do that. CKM consumes the output.
 - **Not a replacement for `--help`.** CKM is a structured complement. It provides topic-based, progressive knowledge that `--help` flags cannot.
-- **Not tied to any organization.** CKM is an open, unscoped package (`ckm` on npm/PyPI/crates.io). Any tool can adopt it.
+- **Not tied to any organization.** CKM is an open package (`ckm-sdk` on npm, `ckm` on PyPI/crates.io). Any tool can adopt it.
 
 ## Origin
 
@@ -115,8 +115,8 @@ CKM originated as a module inside [VersionGuard](https://github.com/kryptobasedd
 
 | Ecosystem | Package | Registry |
 |-----------|---------|----------|
-| TypeScript/JS | `ckm` | npm (via napi-rs native + WASM) |
-| CLI binary | `ckm-cli` | npm + crates.io |
+| TypeScript/JS | `ckm-sdk` | npm (via napi-rs native) |
+| CLI binary | `ckm-cli` | crates.io (npm pending) |
 | Python | `ckm` | PyPI (via PyO3 native wheel) |
 | Rust | `ckm` | crates.io (direct dependency) |
 | Go | `github.com/kryptobaseddev/ckm/go` | Go modules (via CGo/WASM) |
@@ -133,4 +133,4 @@ No scopes. No org prefixes. Universal.
 
 - VersionGuard was CKM's incubator and first consumer
 - After extraction, VersionGuard depends on `ckm` as a library (replaces `src/ckm/`)
-- VersionGuard's `vg ckm` command becomes: `import { createCkmEngine } from 'ckm'`
+- VersionGuard's `vg ckm` command becomes: `const { createCkmEngine } = require('ckm-sdk')`
