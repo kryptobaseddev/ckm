@@ -1,6 +1,6 @@
 [package]
 name = "ckm"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 description = "CKM (Codebase Knowledge Manifest) — pure Rust core library. The SSoT for all language wrappers."
 license = "MIT"
