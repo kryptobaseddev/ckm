@@ -1,4 +1,5 @@
-// ─── Schema Types (importable by generators like forge-ts) ───────
+// ─── CKM Schema Types (the compile-time contract) ───────────────
+// Import these in your generator: import type { CkmManifest } from 'ckm-sdk'
 
 /** Canonical type set — maps to JSON Schema primitives. */
 export type CanonicalType = 'string' | 'boolean' | 'number' | 'integer' | 'array' | 'object' | 'null' | 'any';
@@ -27,6 +28,8 @@ export interface CkmConcept {
   what: string;
   tags: string[];
   properties?: CkmProperty[] | null;
+  rules?: string[] | null;
+  relatedTo?: string[] | null;
 }
 
 /** Function parameter. */
@@ -49,8 +52,11 @@ export interface CkmOperation {
   name: string;
   what: string;
   tags: string[];
+  preconditions?: string[] | null;
   inputs?: CkmInput[] | null;
   outputs?: CkmOutput | null;
+  exitCodes?: Record<string, string> | null;
+  checksPerformed?: string[] | null;
 }
 
 /** Enforced constraint. */
@@ -59,12 +65,16 @@ export interface CkmConstraint {
   rule: string;
   enforcedBy: string;
   severity: 'error' | 'warning' | 'info';
+  configKey?: string | null;
+  default?: string | null;
+  security?: boolean | null;
 }
 
 /** Workflow step. */
 export interface CkmWorkflowStep {
   action: 'command' | 'manual';
   value: string;
+  expect?: string | null;
   note?: string | null;
 }
 
@@ -83,6 +93,17 @@ export interface CkmConfigEntry {
   description: string;
   default?: string | null;
   required: boolean;
+  effect?: string | null;
+}
+
+/** Producer-declared topic. Overrides engine-derived topics when present. */
+export interface CkmDeclaredTopic {
+  name: string;
+  summary: string;
+  conceptIds?: string[];
+  operationIds?: string[];
+  constraintIds?: string[];
+  configKeys?: string[];
 }
 
 /** Manifest metadata. */
@@ -94,7 +115,7 @@ export interface CkmMeta {
   sourceUrl?: string | null;
 }
 
-/** Complete CKM v2 manifest. */
+/** Complete CKM v2 manifest — the universal contract. */
 export interface CkmManifest {
   $schema: string;
   version: string;
@@ -104,6 +125,7 @@ export interface CkmManifest {
   constraints: CkmConstraint[];
   workflows: CkmWorkflow[];
   configSchema: CkmConfigEntry[];
+  topics?: CkmDeclaredTopic[] | null;
 }
 
 // ─── Derived Types (computed by engine) ──────────────────────────
@@ -128,36 +150,18 @@ export interface CkmTopicIndexEntry {
 
 export interface CkmTopicIndex {
   topics: CkmTopicIndexEntry[];
-  ckm: {
-    concepts: number;
-    operations: number;
-    constraints: number;
-    workflows: number;
-    configSchema: number;
-  };
+  ckm: { concepts: number; operations: number; constraints: number; workflows: number; configSchema: number };
 }
 
 export interface CkmInspectResult {
   meta: CkmMeta;
-  counts: {
-    concepts: number;
-    operations: number;
-    constraints: number;
-    workflows: number;
-    configKeys: number;
-    topics: number;
-  };
+  counts: { concepts: number; operations: number; constraints: number; workflows: number; configKeys: number; topics: number };
   topicNames: string[];
-}
-
-export interface CkmValidationError {
-  path: string;
-  message: string;
 }
 
 export interface CkmValidationResult {
   valid: boolean;
-  errors: CkmValidationError[];
+  errors: Array<{ path: string; message: string }>;
 }
 
 export interface CkmErrorResult {
@@ -165,7 +169,7 @@ export interface CkmErrorResult {
   topics: string[];
 }
 
-// ─── Consumer API (reading manifests) ────────────────────────────
+// ─── Consumer API ────────────────────────────────────────────────
 
 export interface CkmEngine {
   readonly topicsCount: number;
@@ -176,34 +180,24 @@ export interface CkmEngine {
   inspect(): CkmInspectResult;
 }
 
-/** Creates a CKM engine from a manifest (object or JSON string). */
 export function createCkmEngine(manifest: CkmManifest | string): CkmEngine;
-
-/** Validates a manifest against the v2 schema. */
 export function validateManifest(data: unknown): CkmValidationResult;
-
-/** Migrates a v1 manifest to v2 format. */
 export function migrateV1toV2(data: unknown): CkmManifest;
-
-/** Detects whether a manifest is v1 or v2. */
 export function detectVersion(data: unknown): 1 | 2;
 
-// ─── Producer API (building manifests) ───────────────────────────
+// ─── Producer API ────────────────────────────────────────────────
 
 export interface CkmManifestBuilder {
   generator(name: string): CkmManifestBuilder;
   sourceUrl(url: string): CkmManifestBuilder;
   addConcept(name: string, slug: string, what: string, tags?: string[]): CkmManifestBuilder;
-  addConceptProperty(conceptSlug: string, name: string, canonicalType: CanonicalType, description: string, required?: boolean, defaultValue?: string | null): CkmManifestBuilder;
+  addConceptProperty(slug: string, name: string, type: CanonicalType, desc: string, required?: boolean, defaultVal?: string | null): CkmManifestBuilder;
   addOperation(name: string, what: string, tags?: string[]): CkmManifestBuilder;
-  addOperationInput(opName: string, paramName: string, canonicalType: CanonicalType, required?: boolean, description?: string): CkmManifestBuilder;
+  addOperationInput(opName: string, param: string, type: CanonicalType, required?: boolean, desc?: string): CkmManifestBuilder;
   addConstraint(rule: string, enforcedBy: string, severity?: 'error' | 'warning' | 'info'): CkmManifestBuilder;
-  addConfig(key: string, canonicalType: CanonicalType, description: string, required?: boolean, defaultValue?: string | null): CkmManifestBuilder;
-  /** Returns the manifest as a JSON string. */
+  addConfig(key: string, type: CanonicalType, desc: string, required?: boolean, defaultVal?: string | null): CkmManifestBuilder;
   build(): string;
-  /** Returns the manifest as a parsed object. */
   buildJson(): CkmManifest;
 }
 
-/** Creates a new manifest builder (producer API for generators). */
 export function createManifestBuilder(project: string, language: string): CkmManifestBuilder;

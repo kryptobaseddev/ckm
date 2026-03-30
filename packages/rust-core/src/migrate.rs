@@ -112,6 +112,7 @@ pub fn migrate_v1_to_v2(v1: &Value) -> CkmManifest {
         constraints,
         workflows,
         config_schema,
+        topics: None,
     }
 }
 
@@ -250,6 +251,8 @@ fn migrate_concept(v: &Value) -> CkmConcept {
             .to_string(),
         tags,
         properties,
+        rules: None,
+        related_to: None,
     }
 }
 
@@ -306,8 +309,11 @@ fn migrate_operation(v: &Value, concepts: &[CkmConcept]) -> CkmOperation {
             .unwrap_or("")
             .to_string(),
         tags,
+        preconditions: None,
         inputs,
         outputs,
+        exit_codes: None,
+        checks_performed: None,
     }
 }
 
@@ -329,6 +335,9 @@ fn migrate_constraint(v: &Value) -> CkmConstraint {
             .unwrap_or("")
             .to_string(),
         severity: Severity::Error,
+        config_key: None,
+        default: None,
+        security: None,
     }
 }
 
@@ -363,6 +372,7 @@ fn migrate_workflow_step(v: &Value) -> CkmWorkflowStep {
             action: StepAction::Command,
             value: cmd.to_string(),
             note,
+            expect: None,
         };
     }
 
@@ -371,6 +381,7 @@ fn migrate_workflow_step(v: &Value) -> CkmWorkflowStep {
             action: StepAction::Manual,
             value: manual.to_string(),
             note,
+            expect: None,
         };
     }
 
@@ -378,6 +389,7 @@ fn migrate_workflow_step(v: &Value) -> CkmWorkflowStep {
         action: StepAction::Manual,
         value: String::new(),
         note,
+        expect: None,
     }
 }
 
@@ -403,6 +415,7 @@ fn migrate_config_entry(v: &Value, concepts: &[CkmConcept]) -> CkmConfigEntry {
             .to_string(),
         default,
         required: true,
+        effect: None,
     }
 }
 

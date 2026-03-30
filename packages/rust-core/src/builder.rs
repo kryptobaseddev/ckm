@@ -84,6 +84,8 @@ impl CkmManifestBuilder {
             what: what.to_string(),
             tags: tags.iter().map(|t| t.to_string()).collect(),
             properties: Some(Vec::new()),
+            rules: None,
+            related_to: None,
         });
         self
     }
@@ -151,8 +153,11 @@ impl CkmManifestBuilder {
             name: name.to_string(),
             what: what.to_string(),
             tags: tags.iter().map(|t| t.to_string()).collect(),
+            preconditions: None,
             inputs: Some(Vec::new()),
             outputs: None,
+            exit_codes: None,
+            checks_performed: None,
         });
         self
     }
@@ -214,6 +219,9 @@ impl CkmManifestBuilder {
                 "info" => Severity::Info,
                 _ => Severity::Error,
             },
+            config_key: None,
+            default: None,
+            security: None,
         });
         self
     }
@@ -237,6 +245,7 @@ impl CkmManifestBuilder {
                 action: StepAction::Command,
                 value: command.to_string(),
                 note: note.map(|n| n.to_string()),
+                expect: None,
             });
         }
         self
@@ -249,6 +258,7 @@ impl CkmManifestBuilder {
                 action: StepAction::Manual,
                 value: instruction.to_string(),
                 note: note.map(|n| n.to_string()),
+                expect: None,
             });
         }
         self
@@ -273,6 +283,7 @@ impl CkmManifestBuilder {
             description: description.to_string(),
             default: default.map(|d| d.to_string()),
             required,
+            effect: None,
         });
         self
     }
@@ -294,6 +305,7 @@ impl CkmManifestBuilder {
             constraints: self.constraints,
             workflows: self.workflows,
             config_schema: self.config_schema,
+            topics: None,
         }
     }
 

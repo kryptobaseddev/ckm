@@ -161,12 +161,15 @@ mod tests {
                     required: true,
                     default: Some("YYYY.MM.DD".to_string()),
                 }]),
+                rules: None,
+                related_to: None,
             }],
             operations: vec![CkmOperation {
                 id: "op-validate".to_string(),
                 name: "validate".to_string(),
                 what: "Validates a calver version string.".to_string(),
                 tags: vec!["calver".to_string()],
+                preconditions: None,
                 inputs: Some(vec![CkmInput {
                     name: "version".to_string(),
                     r#type: CkmTypeRef {
@@ -178,6 +181,8 @@ mod tests {
                     description: "The version string to validate.".to_string(),
                 }]),
                 outputs: None,
+                exit_codes: None,
+                checks_performed: None,
             }],
             config_schema: vec![CkmConfigEntry {
                 key: "calver.format".to_string(),
@@ -189,12 +194,16 @@ mod tests {
                 description: "Calendar format used for version strings.".to_string(),
                 default: Some("YYYY.MM.DD".to_string()),
                 required: true,
+                effect: None,
             }],
             constraints: vec![CkmConstraint {
                 id: "constraint-no-future-dates".to_string(),
                 rule: "CalVer versions must not reference future dates.".to_string(),
                 enforced_by: "validate".to_string(),
                 severity: Severity::Error,
+                config_key: None,
+                default: None,
+                security: None,
             }],
         }
     }

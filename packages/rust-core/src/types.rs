@@ -122,6 +122,14 @@ pub struct CkmConcept {
     /// Properties of the type, if applicable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub properties: Option<Vec<CkmProperty>>,
+
+    /// Validation rules extracted from remarks or constraint tags.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rules: Option<Vec<String>>,
+
+    /// Related concept names from @see tags or type references.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub related_to: Option<Vec<String>>,
 }
 
 /// A function parameter within an operation.
@@ -168,6 +176,10 @@ pub struct CkmOperation {
     /// Semantic tags for topic linkage.
     pub tags: Vec<String>,
 
+    /// Preconditions that must be met before invoking this operation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preconditions: Option<Vec<String>>,
+
     /// Function parameters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inputs: Option<Vec<CkmInput>>,
@@ -175,6 +187,14 @@ pub struct CkmOperation {
     /// Return value.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outputs: Option<CkmOutput>,
+
+    /// Exit codes and their meanings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exit_codes: Option<std::collections::HashMap<String, String>>,
+
+    /// Checks or validations performed by this operation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checks_performed: Option<Vec<String>>,
 }
 
 /// A rule enforced by the tool.
@@ -192,6 +212,18 @@ pub struct CkmConstraint {
 
     /// Severity level.
     pub severity: Severity,
+
+    /// Config key that controls this constraint.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config_key: Option<String>,
+
+    /// Default value for the config key.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<String>,
+
+    /// Whether this constraint has security implications.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security: Option<bool>,
 }
 
 /// Severity levels for constraints.
@@ -219,6 +251,10 @@ pub struct CkmWorkflowStep {
     /// Optional explanatory note.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+
+    /// Expected outcome of this step.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expect: Option<String>,
 }
 
 /// Discriminant for workflow step types.
@@ -267,6 +303,40 @@ pub struct CkmConfigEntry {
 
     /// Whether the config entry is required.
     pub required: bool,
+
+    /// Downstream effect or behavior this config entry controls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effect: Option<String>,
+}
+
+/// A producer-declared topic grouping for the manifest.
+///
+/// When present in the manifest, these override engine-derived topics.
+/// This gives generators full control over topic structure.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CkmDeclaredTopic {
+    /// Topic slug (e.g., "getting-started").
+    pub name: String,
+
+    /// One-line summary.
+    pub summary: String,
+
+    /// IDs of concepts belonging to this topic.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub concept_ids: Vec<String>,
+
+    /// IDs of operations belonging to this topic.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub operation_ids: Vec<String>,
+
+    /// IDs of constraints belonging to this topic.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub constraint_ids: Vec<String>,
+
+    /// Config key prefixes belonging to this topic.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub config_keys: Vec<String>,
 }
 
 /// Provenance metadata about the manifest source.
@@ -318,6 +388,11 @@ pub struct CkmManifest {
 
     /// Configuration schema entries.
     pub config_schema: Vec<CkmConfigEntry>,
+
+    /// Producer-declared topics. When present, these override engine-derived topics.
+    /// This gives generators full control over topic grouping.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub topics: Option<Vec<CkmDeclaredTopic>>,
 }
 
 // ────────────────────────────────────────────────────────────────────────────

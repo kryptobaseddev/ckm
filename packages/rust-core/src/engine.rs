@@ -47,10 +47,16 @@ impl CkmEngine {
                 constraints: Vec::new(),
                 workflows: Vec::new(),
                 config_schema: Vec::new(),
+                topics: None,
             })
         };
 
-        let derived_topics = derive_topics(&manifest);
+        // Use producer-declared topics if present, otherwise derive from manifest
+        let derived_topics = if let Some(ref declared) = manifest.topics {
+            resolve_declared_topics(declared, &manifest)
+        } else {
+            derive_topics(&manifest)
+        };
 
         CkmEngine {
             manifest,
@@ -144,6 +150,57 @@ impl CkmEngine {
             }),
         }
     }
+}
+
+// ─── Producer-Declared Topics ───────────────────────────────────────────
+
+/// Resolves producer-declared topics by looking up IDs in the manifest.
+/// This gives generators full control over topic grouping.
+fn resolve_declared_topics(
+    declared: &[crate::types::CkmDeclaredTopic],
+    manifest: &CkmManifest,
+) -> Vec<CkmTopic> {
+    declared
+        .iter()
+        .map(|dt| {
+            let concepts: Vec<_> = manifest
+                .concepts
+                .iter()
+                .filter(|c| dt.concept_ids.contains(&c.id))
+                .cloned()
+                .collect();
+
+            let operations: Vec<_> = manifest
+                .operations
+                .iter()
+                .filter(|o| dt.operation_ids.contains(&o.id))
+                .cloned()
+                .collect();
+
+            let constraints: Vec<_> = manifest
+                .constraints
+                .iter()
+                .filter(|c| dt.constraint_ids.contains(&c.id))
+                .cloned()
+                .collect();
+
+            let config_schema: Vec<_> = manifest
+                .config_schema
+                .iter()
+                .filter(|e| dt.config_keys.iter().any(|k| e.key.starts_with(k)))
+                .cloned()
+                .collect();
+
+            CkmTopic {
+                name: dt.name.clone(),
+                summary: dt.summary.clone(),
+                concepts,
+                operations,
+                config_schema,
+                constraints,
+            }
+        })
+        .collect()
 }
 
 // ─── Topic Derivation (SPEC.md Section 3 — revised) ────────────────────
