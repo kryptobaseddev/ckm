@@ -1,0 +1,20 @@
+{
+  "$schema": "https://versionguard.dev/schemas/config.json",
+  "versioning": {
+    "mode": "calver",
+    "calver": {
+      "format": "YYYY.M.MICRO"
+    }
+  },
+  "sources": [
+    { "type": "json", "path": "packages/rust-core/Cargo.toml", "key": "package.version" },
+    { "type": "json", "path": "packages/cli-rs/Cargo.toml", "key": "package.version" },
+    { "type": "json", "path": "packages/node/package.json", "key": "version" },
+    { "type": "json", "path": "packages/python/Cargo.toml", "key": "package.version" },
+    { "type": "json", "path": "packages/python/pyproject.toml", "key": "project.version" }
+  ],
+  "sync": {
+    "enabled": true,
+    "strict": true
+  }
+}

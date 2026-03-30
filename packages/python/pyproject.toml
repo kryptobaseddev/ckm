@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ckm"
-version = "0.1.0"
+version = "2026.3.1"
 description = "CKM — Codebase Knowledge Manifest SDK"
 requires-python = ">=3.10"
 license = {text = "MIT"}
