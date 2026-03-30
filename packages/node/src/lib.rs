@@ -138,3 +138,134 @@ pub fn detect_version(json: String) -> Result<u32> {
         .map_err(|e| Error::from_reason(format!("Invalid JSON: {}", e)))?;
     Ok(ckm::detect_version(&data) as u32)
 }
+
+// ─── Manifest Builder (Producer API) ──────────────────────────────────
+
+/// Fluent builder for constructing valid CKM v2 manifests.
+///
+/// This is the **producer** side — generators use this to build manifests
+/// with type safety instead of hand-rolling JSON.
+#[napi]
+pub struct CkmManifestBuilderWrapper {
+    inner: ckm::CkmManifestBuilder,
+}
+
+#[napi]
+impl CkmManifestBuilderWrapper {
+    /// Creates a new builder with project name and language.
+    #[napi(constructor)]
+    pub fn new(project: String, language: String) -> Self {
+        Self {
+            inner: ckm::CkmManifestBuilder::new(&project, &language),
+        }
+    }
+
+    /// Sets the generator name (e.g., "forge-ts@1.0.0").
+    #[napi]
+    pub fn generator(&mut self, generator: String) -> &Self {
+        self.inner = self.inner.clone().generator(&generator);
+        self
+    }
+
+    /// Sets the source repository URL.
+    #[napi]
+    pub fn source_url(&mut self, url: String) -> &Self {
+        self.inner = self.inner.clone().source_url(&url);
+        self
+    }
+
+    /// Adds a concept.
+    #[napi]
+    pub fn add_concept(&mut self, name: String, slug: String, what: String, tags: Vec<String>) -> &Self {
+        let tag_refs: Vec<&str> = tags.iter().map(|s| s.as_str()).collect();
+        self.inner = self.inner.clone().add_concept(&name, &slug, &what, &tag_refs);
+        self
+    }
+
+    /// Adds a property to a concept by slug.
+    #[napi]
+    pub fn add_concept_property(
+        &mut self,
+        concept_slug: String,
+        name: String,
+        canonical_type: String,
+        description: String,
+        required: bool,
+        default_value: Option<String>,
+    ) -> &Self {
+        self.inner = self.inner.clone().add_concept_property(
+            &concept_slug,
+            &name,
+            &canonical_type,
+            &description,
+            required,
+            default_value.as_deref(),
+        );
+        self
+    }
+
+    /// Adds an operation with tags.
+    #[napi]
+    pub fn add_operation(&mut self, name: String, what: String, tags: Vec<String>) -> &Self {
+        let tag_refs: Vec<&str> = tags.iter().map(|s| s.as_str()).collect();
+        self.inner = self.inner.clone().add_operation(&name, &what, &tag_refs);
+        self
+    }
+
+    /// Adds an input to an operation.
+    #[napi]
+    pub fn add_operation_input(
+        &mut self,
+        op_name: String,
+        param_name: String,
+        canonical_type: String,
+        required: bool,
+        description: String,
+    ) -> &Self {
+        self.inner = self.inner.clone().add_operation_input(
+            &op_name,
+            &param_name,
+            &canonical_type,
+            required,
+            &description,
+        );
+        self
+    }
+
+    /// Adds a constraint.
+    #[napi]
+    pub fn add_constraint(&mut self, rule: String, enforced_by: String, severity: String) -> &Self {
+        self.inner = self.inner.clone().add_constraint(&rule, &enforced_by, &severity);
+        self
+    }
+
+    /// Adds a config entry.
+    #[napi]
+    pub fn add_config(
+        &mut self,
+        key: String,
+        canonical_type: String,
+        description: String,
+        required: bool,
+        default_value: Option<String>,
+    ) -> &Self {
+        self.inner = self.inner.clone().add_config(
+            &key,
+            &canonical_type,
+            &description,
+            required,
+            default_value.as_deref(),
+        );
+        self
+    }
+
+    /// Builds the manifest and returns it as a JSON string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization fails.
+    #[napi]
+    pub fn build(&self) -> Result<String> {
+        Ok(self.inner.build_json())
+    }
+}

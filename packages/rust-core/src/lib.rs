@@ -31,6 +31,7 @@
 //! println!("{}", index);
 //! ```
 
+pub mod builder;
 pub mod engine;
 pub mod format;
 pub mod migrate;
@@ -47,3 +48,4 @@ pub use types::{
     CkmWorkflow, CkmWorkflowStep, TopicJsonResult,
 };
 pub use validate::validate_manifest;
+pub use builder::CkmManifestBuilder;

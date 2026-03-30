@@ -30,6 +30,23 @@ pub enum CanonicalType {
     Any,
 }
 
+impl CanonicalType {
+    /// Parses a string into a CanonicalType. Defaults to Object for unknown types.
+    pub fn parse(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "string" => Self::String,
+            "boolean" | "bool" => Self::Boolean,
+            "number" | "float" | "f64" => Self::Number,
+            "integer" | "int" | "i64" => Self::Integer,
+            "array" => Self::Array,
+            "object" => Self::Object,
+            "null" | "void" | "undefined" => Self::Null,
+            "any" | "unknown" => Self::Any,
+            _ => Self::Object,
+        }
+    }
+}
+
 impl std::fmt::Display for CanonicalType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {

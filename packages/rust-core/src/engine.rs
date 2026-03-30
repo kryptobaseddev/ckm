@@ -146,53 +146,67 @@ impl CkmEngine {
     }
 }
 
-// ─── Topic Derivation (SPEC.md Section 3) ───────────────────────────────
+// ─── Topic Derivation (SPEC.md Section 3 — revised) ────────────────────
+//
+// Every concept with a non-empty slug becomes a topic.
+// Operations/constraints/config are matched by tag overlap or keyword.
+// Unmatched operations get their own topics so nothing is invisible.
 
 fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
     let mut topics: Vec<CkmTopic> = Vec::new();
+    let mut claimed_op_ids: Vec<String> = Vec::new();
+    let mut claimed_constraint_ids: Vec<String> = Vec::new();
 
+    // Phase 1: Every concept with a slug becomes a topic
     for concept in &manifest.concepts {
-        // Step 1: Only concepts tagged "config" become topics
-        if !concept.tags.iter().any(|t| t == "config") {
-            continue;
-        }
-
         let slug = &concept.slug;
         if slug.is_empty() {
             continue;
         }
 
-        // Step 2: Collect all related concepts
+        // Skip if we already have a topic with this slug (dedup)
+        if topics.iter().any(|t| t.name == *slug) {
+            // Merge this concept into the existing topic
+            if let Some(existing) = topics.iter_mut().find(|t| t.name == *slug) {
+                existing.concepts.push(concept.clone());
+            }
+            continue;
+        }
+
+        // Collect related concepts (same slug or name contains slug)
         let mut related_concepts: Vec<CkmConcept> = vec![concept.clone()];
         for other in &manifest.concepts {
             if other.id == concept.id {
                 continue;
             }
-            let other_slug = derive_slug(&other.name);
-            if other.name.to_lowercase().contains(slug) || slug.contains(&other_slug) {
+            if other.slug == *slug {
                 related_concepts.push(other.clone());
+            } else {
+                let other_slug = derive_slug(&other.name);
+                if other.name.to_lowercase().contains(slug) || slug.contains(&other_slug) {
+                    related_concepts.push(other.clone());
+                }
             }
         }
         let concept_names: Vec<String> = related_concepts.iter().map(|c| c.name.clone()).collect();
 
-        // Step 3: Match operations by tags or keywords
+        // Match operations by tag overlap or keyword
         let matched_operations: Vec<_> = manifest
             .operations
             .iter()
             .filter(|op| {
-                if op
-                    .tags
-                    .iter()
-                    .any(|t| t.to_lowercase() == slug.to_lowercase())
-                {
+                if op.tags.iter().any(|t| t.to_lowercase() == slug.to_lowercase()) {
                     return true;
                 }
-                operation_matches_by_keyword(op, slug, &concept_names)
+                matches_by_keyword(&op.name, &op.what, slug, &concept_names)
             })
             .cloned()
             .collect();
+        for op in &matched_operations {
+            claimed_op_ids.push(op.id.clone());
+        }
 
-        // Step 4: Match config entries by key prefix
+        // Match config entries by key prefix
         let matched_config: Vec<_> = manifest
             .config_schema
             .iter()
@@ -203,25 +217,22 @@ fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
             .cloned()
             .collect();
 
-        // Step 5: Match constraints
+        // Match constraints by enforcedBy referencing concepts or matched operations
         let matched_constraints: Vec<_> = manifest
             .constraints
             .iter()
-            .filter(|constraint| {
-                if concept_names
-                    .iter()
-                    .any(|name| constraint.enforced_by.contains(name.as_str()))
-                {
+            .filter(|c| {
+                if concept_names.iter().any(|name| c.enforced_by.contains(name.as_str())) {
                     return true;
                 }
-                matched_operations
-                    .iter()
-                    .any(|op| constraint.enforced_by.contains(op.name.as_str()))
+                matched_operations.iter().any(|op| c.enforced_by.contains(op.name.as_str()))
             })
             .cloned()
             .collect();
+        for c in &matched_constraints {
+            claimed_constraint_ids.push(c.id.clone());
+        }
 
-        // Step 6: Build topic
         topics.push(CkmTopic {
             name: slug.clone(),
             summary: concept.what.clone(),
@@ -232,21 +243,67 @@ fn derive_topics(manifest: &CkmManifest) -> Vec<CkmTopic> {
         });
     }
 
+    // Phase 2: Unclaimed operations get their own topics
+    for op in &manifest.operations {
+        if claimed_op_ids.contains(&op.id) {
+            continue;
+        }
+        let slug = derive_slug(&op.name);
+        if slug.is_empty() {
+            continue;
+        }
+        // If a topic with this slug already exists, add the operation to it
+        if let Some(existing) = topics.iter_mut().find(|t| t.name == slug) {
+            existing.operations.push(op.clone());
+            claimed_op_ids.push(op.id.clone());
+            continue;
+        }
+        // Create a new topic for this operation
+        topics.push(CkmTopic {
+            name: slug.clone(),
+            summary: op.what.clone(),
+            concepts: Vec::new(),
+            operations: vec![op.clone()],
+            config_schema: Vec::new(),
+            constraints: Vec::new(),
+        });
+        claimed_op_ids.push(op.id.clone());
+    }
+
+    // Phase 3: Unclaimed constraints get added to matching topics or their own
+    for constraint in &manifest.constraints {
+        if claimed_constraint_ids.contains(&constraint.id) {
+            continue;
+        }
+        // Try to find a topic whose operations match enforcedBy
+        let mut matched = false;
+        for topic in &mut topics {
+            if topic.operations.iter().any(|op| constraint.enforced_by.contains(op.name.as_str())) {
+                topic.constraints.push(constraint.clone());
+                matched = true;
+                break;
+            }
+        }
+        if !matched {
+            // Add to first topic or create an "other" topic
+            if let Some(first) = topics.first_mut() {
+                first.constraints.push(constraint.clone());
+            }
+        }
+    }
+
     topics
 }
 
-fn operation_matches_by_keyword(
-    op: &crate::types::CkmOperation,
-    slug: &str,
-    concept_names: &[String],
-) -> bool {
-    let haystack = format!("{} {}", op.name, op.what).to_lowercase();
+/// Checks if a name+description matches a slug or concept names by keyword.
+fn matches_by_keyword(name: &str, what: &str, slug: &str, concept_names: &[String]) -> bool {
+    let haystack = format!("{} {}", name, what).to_lowercase();
     if haystack.contains(slug) {
         return true;
     }
     concept_names
         .iter()
-        .any(|name| haystack.contains(&name.to_lowercase()))
+        .any(|n| haystack.contains(&n.to_lowercase()))
 }
 
 #[cfg(test)]
