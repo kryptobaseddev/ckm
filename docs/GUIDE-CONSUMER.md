@@ -212,13 +212,16 @@ Same API, same behavior. The Rust crate IS the engine — Node.js calls into it 
 If you just want to browse a `ckm.json` without writing code:
 
 ```bash
-cargo install ckm-cli
+# Via npm (CLI is built into ckm-sdk)
+npx ckm-sdk browse --file docs/ckm.json
+npx ckm-sdk browse calver --file docs/ckm.json
+npx ckm-sdk browse --json --file docs/ckm.json
+npx ckm-sdk validate docs/ckm.json
+npx ckm-sdk inspect docs/ckm.json
 
+# Or via Rust native binary
+cargo install ckm-cli
 ckm browse --file docs/ckm.json
-ckm browse calver --file docs/ckm.json
-ckm browse --json --file docs/ckm.json
-ckm validate docs/ckm.json
-ckm inspect docs/ckm.json
 ```
 
 ## Progressive Disclosure Protocol

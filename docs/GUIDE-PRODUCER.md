@@ -215,14 +215,36 @@ manifest.concepts[0].extensions = {
 
 Extensions are freeform `Record<string, unknown>`. CKM passes them through untouched. Your tooling reads them; the SDK ignores them.
 
+## Inspecting Your Output
+
+After generating `ckm.json`, use the built-in CLI to verify it looks right:
+
+```bash
+# Validate the manifest
+npx ckm-sdk validate docs/ckm.json
+
+# See what topics were derived
+npx ckm-sdk browse --file docs/ckm.json
+
+# Drill into a specific topic
+npx ckm-sdk browse calver --file docs/ckm.json
+
+# Check manifest stats (concept/operation/topic counts)
+npx ckm-sdk inspect docs/ckm.json
+
+# See the full JSON output an LLM agent would get
+npx ckm-sdk browse --json --file docs/ckm.json
+```
+
 ## Validation Checklist
 
 Before shipping your generator:
 
-- [ ] Output passes `validateManifest()` with zero errors
+- [ ] Output passes `npx ckm-sdk validate docs/ckm.json` with zero errors
 - [ ] Every concept has a non-empty `slug`
 - [ ] Every concept has at least one tag
 - [ ] Operations have `tags` that link them to concepts
 - [ ] Config keys use dotted paths matching concept slugs (e.g., `calver.format`)
 - [ ] The `meta` block is fully populated (project, language, generator, generated)
-- [ ] Run the output through `createCkmEngine()` and verify topics look right
+- [ ] `npx ckm-sdk browse --file docs/ckm.json` shows the topics you expect
+- [ ] `npx ckm-sdk inspect docs/ckm.json` shows correct concept/operation counts
