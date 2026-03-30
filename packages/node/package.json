@@ -1,6 +1,6 @@
 {
   "name": "ckm-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CKM — Codebase Knowledge Manifest SDK. Auto-derived topics, progressive disclosure, CLI framework adapters. Powered by Rust.",
   "main": "index.js",
   "types": "index.d.ts",

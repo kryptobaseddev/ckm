@@ -163,6 +163,7 @@ mod tests {
                 }]),
                 rules: None,
                 related_to: None,
+                extensions: None,
             }],
             operations: vec![CkmOperation {
                 id: "op-validate".to_string(),
@@ -183,6 +184,7 @@ mod tests {
                 outputs: None,
                 exit_codes: None,
                 checks_performed: None,
+                extensions: None,
             }],
             config_schema: vec![CkmConfigEntry {
                 key: "calver.format".to_string(),
@@ -195,6 +197,7 @@ mod tests {
                 default: Some("YYYY.MM.DD".to_string()),
                 required: true,
                 effect: None,
+                extensions: None,
             }],
             constraints: vec![CkmConstraint {
                 id: "constraint-no-future-dates".to_string(),
@@ -204,6 +207,7 @@ mod tests {
                 config_key: None,
                 default: None,
                 security: None,
+                extensions: None,
             }],
         }
     }

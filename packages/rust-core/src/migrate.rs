@@ -113,6 +113,7 @@ pub fn migrate_v1_to_v2(v1: &Value) -> CkmManifest {
         workflows,
         config_schema,
         topics: None,
+        extensions: None,
     }
 }
 
@@ -253,6 +254,7 @@ fn migrate_concept(v: &Value) -> CkmConcept {
         properties,
         rules: None,
         related_to: None,
+        extensions: None,
     }
 }
 
@@ -314,6 +316,7 @@ fn migrate_operation(v: &Value, concepts: &[CkmConcept]) -> CkmOperation {
         outputs,
         exit_codes: None,
         checks_performed: None,
+        extensions: None,
     }
 }
 
@@ -338,6 +341,7 @@ fn migrate_constraint(v: &Value) -> CkmConstraint {
         config_key: None,
         default: None,
         security: None,
+        extensions: None,
     }
 }
 
@@ -361,6 +365,7 @@ fn migrate_workflow(v: &Value) -> CkmWorkflow {
             .to_string(),
         tags: Vec::new(),
         steps,
+        extensions: None,
     }
 }
 
@@ -416,6 +421,7 @@ fn migrate_config_entry(v: &Value, concepts: &[CkmConcept]) -> CkmConfigEntry {
         default,
         required: true,
         effect: None,
+        extensions: None,
     }
 }
 

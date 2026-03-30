@@ -86,6 +86,7 @@ impl CkmManifestBuilder {
             properties: Some(Vec::new()),
             rules: None,
             related_to: None,
+            extensions: None,
         });
         self
     }
@@ -158,6 +159,7 @@ impl CkmManifestBuilder {
             outputs: None,
             exit_codes: None,
             checks_performed: None,
+            extensions: None,
         });
         self
     }
@@ -222,6 +224,7 @@ impl CkmManifestBuilder {
             config_key: None,
             default: None,
             security: None,
+            extensions: None,
         });
         self
     }
@@ -234,6 +237,7 @@ impl CkmManifestBuilder {
             goal: goal.to_string(),
             tags: tags.iter().map(|t| t.to_string()).collect(),
             steps: Vec::new(),
+            extensions: None,
         });
         self
     }
@@ -284,6 +288,7 @@ impl CkmManifestBuilder {
             default: default.map(|d| d.to_string()),
             required,
             effect: None,
+            extensions: None,
         });
         self
     }
@@ -306,6 +311,7 @@ impl CkmManifestBuilder {
             workflows: self.workflows,
             config_schema: self.config_schema,
             topics: None,
+            extensions: None,
         }
     }
 

@@ -1,6 +1,9 @@
 // ─── CKM Schema Types (the compile-time contract) ───────────────
 // Import these in your generator: import type { CkmManifest } from 'ckm-sdk'
 
+/** Freeform extension data. Producers can attach arbitrary key-value pairs. */
+export type Extensions = Record<string, unknown>;
+
 /** Canonical type set — maps to JSON Schema primitives. */
 export type CanonicalType = 'string' | 'boolean' | 'number' | 'integer' | 'array' | 'object' | 'null' | 'any';
 
@@ -30,6 +33,7 @@ export interface CkmConcept {
   properties?: CkmProperty[] | null;
   rules?: string[] | null;
   relatedTo?: string[] | null;
+  extensions?: Extensions;
 }
 
 /** Function parameter. */
@@ -57,6 +61,7 @@ export interface CkmOperation {
   outputs?: CkmOutput | null;
   exitCodes?: Record<string, string> | null;
   checksPerformed?: string[] | null;
+  extensions?: Extensions;
 }
 
 /** Enforced constraint. */
@@ -68,6 +73,7 @@ export interface CkmConstraint {
   configKey?: string | null;
   default?: string | null;
   security?: boolean | null;
+  extensions?: Extensions;
 }
 
 /** Workflow step. */
@@ -84,6 +90,7 @@ export interface CkmWorkflow {
   goal: string;
   tags: string[];
   steps: CkmWorkflowStep[];
+  extensions?: Extensions;
 }
 
 /** Configuration entry. */
@@ -94,6 +101,7 @@ export interface CkmConfigEntry {
   default?: string | null;
   required: boolean;
   effect?: string | null;
+  extensions?: Extensions;
 }
 
 /** Producer-declared topic. Overrides engine-derived topics when present. */
@@ -126,6 +134,7 @@ export interface CkmManifest {
   workflows: CkmWorkflow[];
   configSchema: CkmConfigEntry[];
   topics?: CkmDeclaredTopic[] | null;
+  extensions?: Extensions;
 }
 
 // ─── Derived Types (computed by engine) ──────────────────────────

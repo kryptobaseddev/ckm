@@ -2,7 +2,13 @@
 //!
 //! Every type here has a 1:1 correspondence with the Single Source of Truth interface definition.
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+/// Freeform extension data. Producers can attach arbitrary key-value pairs
+/// to any CKM entity. The SDK passes these through without validation.
+pub type Extensions = HashMap<String, serde_json::Value>;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Section 2: Input Types (from ckm.json v2)
@@ -130,6 +136,10 @@ pub struct CkmConcept {
     /// Related concept names from @see tags or type references.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub related_to: Option<Vec<String>>,
+
+    /// Producer-defined extension data. CKM passes this through without validation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 /// A function parameter within an operation.
@@ -195,6 +205,10 @@ pub struct CkmOperation {
     /// Checks or validations performed by this operation.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checks_performed: Option<Vec<String>>,
+
+    /// Producer-defined extension data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 /// A rule enforced by the tool.
@@ -224,6 +238,10 @@ pub struct CkmConstraint {
     /// Whether this constraint has security implications.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub security: Option<bool>,
+
+    /// Producer-defined extension data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 /// Severity levels for constraints.
@@ -282,6 +300,10 @@ pub struct CkmWorkflow {
 
     /// Ordered steps (minimum 1).
     pub steps: Vec<CkmWorkflowStep>,
+
+    /// Producer-defined extension data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 /// A configuration schema entry.
@@ -307,6 +329,10 @@ pub struct CkmConfigEntry {
     /// Downstream effect or behavior this config entry controls.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub effect: Option<String>,
+
+    /// Producer-defined extension data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 /// A producer-declared topic grouping for the manifest.
@@ -393,6 +419,10 @@ pub struct CkmManifest {
     /// This gives generators full control over topic grouping.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub topics: Option<Vec<CkmDeclaredTopic>>,
+
+    /// Producer-defined extension data at the manifest level.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Extensions>,
 }
 
 // ────────────────────────────────────────────────────────────────────────────

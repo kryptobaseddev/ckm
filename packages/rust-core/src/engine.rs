@@ -48,6 +48,7 @@ impl CkmEngine {
                 workflows: Vec::new(),
                 config_schema: Vec::new(),
                 topics: None,
+                extensions: None,
             })
         };
 
