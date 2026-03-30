@@ -1,12 +1,16 @@
 {
   "name": "ckm-sdk",
-  "version": "2026.3.2",
-  "description": "CKM \u2014 Codebase Knowledge Manifest SDK. Auto-derived topics, progressive disclosure, CLI framework adapters. Powered by Rust.",
+  "version": "2026.3.3",
+  "description": "CKM — Codebase Knowledge Manifest SDK. Auto-derived topics, progressive disclosure, CLI framework adapters. Powered by Rust.",
   "main": "index.js",
   "types": "index.d.ts",
+  "bin": {
+    "ckm-sdk": "cli.js"
+  },
   "files": [
     "index.js",
     "index.d.ts",
+    "cli.js",
     "ckm.node",
     "ckm.linux-x64-gnu.node",
     "README.md"
